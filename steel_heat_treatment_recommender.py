@@ -340,7 +340,9 @@ h1, h2, h3, h4, h5, h6 { font-family: 'Space Mono', monospace !important; color:
 }
 .pro-card {
     background: linear-gradient(145deg, #0d0d0d, #050505);
-    border: 1px solid #333; border-radius: 6px; padding: 1.5rem;
+    border: 1px solid #333; 
+    border-left: 3px solid #FFFFFF; /* High contrast B&W design accent */
+    border-radius: 6px; padding: 1.5rem;
     flex: 1; min-width: 220px; transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0,0,0,0.5);
 }
@@ -356,8 +358,8 @@ h1, h2, h3, h4, h5, h6 { font-family: 'Space Mono', monospace !important; color:
     border-bottom: 1px dashed #333; padding-bottom: 0.8rem; margin-bottom: 1rem;
 }
 .pro-card-row { margin: 0.5rem 0; font-family: 'Space Mono', monospace; font-size: 0.9rem; }
-.pro-label { color: #666; width: 85px; display: inline-block; font-weight: 700; }
-.pro-value { color: #E6E6E6; }
+.pro-label { color: #888; width: 85px; display: inline-block; font-weight: 700; }
+.pro-value { color: #FFFFFF; font-weight: 600; }
 
 /* Unified Buttons */
 div.stButton > button {
@@ -410,20 +412,21 @@ animate();
 
 
     def create_plotly_comparison(self, targets: Dict[str, float], results: List[Dict]) -> go.Figure:
-        # Generates a highly professional, interactive, monochrome Plotly graph.
+        # Generates a highly professional, interactive Plotly graph.
         fig = go.Figure()
         props = PROPERTY_NAMES
         
-        # Target Line (Hollow bars)
+        # Target Line (Hollow bars with vivid accent for high visibility)
         t_vals = [targets[p] for p in props]
         fig.add_trace(go.Bar(
             x=[f"{p}<br>({PROP_UNITS[p]})" for p in props], y=t_vals, name='Target Goal',
-            marker=dict(color='rgba(0,0,0,0)', line=dict(color='#FFFFFF', width=2)),
+            marker=dict(color='rgba(0,0,0,0)', line=dict(color='#00E5FF', width=2)), # Electric Cyan Accent
             hovertemplate='%{x}: %{y}<extra></extra>'
         ))
 
-        # Prediction Bars with Grayscale mapping
-        shades = ['#FFFFFF', '#CCCCCC', '#999999', '#666666', '#333333']
+        # Vibrant but professional 'Steel & Heat' palette to distinguish ranks clearly
+        # White (Rank 1), Steel Blue (Rank 2), Teal (Rank 3), Gold (Rank 4), Coral (Rank 5)
+        shades = ['#FFFFFF', '#5D9CEC', '#48CFAD', '#FFCE54', '#FC6E51']
         for i, r in enumerate(results):
             pred = [r['pred'][p] for p in props]
             err = [r['std'][p] for p in props]
@@ -431,18 +434,18 @@ animate();
                 x=[f"{p}<br>({PROP_UNITS[p]})" for p in props], y=pred,
                 name=f"Rank #{r['rank']} (Score: {r['score']:.1f})",
                 marker_color=shades[i % len(shades)],
-                error_y=dict(type='data', array=err, visible=True, color='#FF4444' if i==0 else '#FFFFFF', thickness=1.5),
+                error_y=dict(type='data', array=err, visible=True, color='#E6E6E6', thickness=1.5),
                 hovertemplate='%{x}: %{y:.1f} ± %{error_y.array:.1f}<extra></extra>'
             ))
 
+        # Removed the internal Plotly `title` dictionary to prevent overlap with the Streamlit Markdown header.
         fig.update_layout(
             barmode='group', plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
             font=dict(color='#E6E6E6', family='Space Mono, monospace', size=11),
-            title=dict(text='TARGET vs. ENSEMBLE PREDICTIONS', font=dict(color='#FFFFFF', size=16)),
             xaxis=dict(showgrid=False, linecolor='#444'),
             yaxis=dict(showgrid=True, gridcolor='#222', linecolor='#444', title='Metric Value'),
-            legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="right", x=1),
-            margin=dict(l=20, r=20, t=80, b=20)
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            margin=dict(l=20, r=20, t=20, b=20) # Tightened top margin significantly
         )
         return fig
 
