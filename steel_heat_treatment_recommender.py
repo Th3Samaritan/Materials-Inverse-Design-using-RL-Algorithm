@@ -146,11 +146,11 @@ class MDNHead(nn.Module):
         super().__init__()
         self.mu_net        = nn.Linear(d_model, n_components)
         self.log_sigma_net = nn.Linear(d_model, n_components)
-        self.weight_net    = nn.Linear(d_model, n_components)
+        self.weight_logit_net = nn.Linear(d_model, n_components)
     def forward(self, h):
         mu     = torch.tanh(self.mu_net(h))
         sigma  = torch.exp(self.log_sigma_net(h).clamp(-4.0, -0.5))
-        weights = F.softmax(self.weight_net(h), dim=-1)
+        weights = F.softmax(self.weight_logit_net(h), dim=-1)
         return mu, sigma, weights
     def sample(self, h, temperature=1.0):
         mu, sigma, weights = self.forward(h)
@@ -189,10 +189,10 @@ class AutoregressivePolicy(nn.Module):
         self.step_embed  = nn.Linear(1, d_model)
         self.sos_token   = nn.Parameter(torch.zeros(1,1,d_model))
         self.memory_proj = nn.Linear(latent_dim, d_model)
-        self.head_delta  = MDNHead(d_model, n_components)
-        self.head_t_aus  = MDNHead(d_model, n_components)
-        self.head_temper = MDNHead(d_model, n_components)
-        self.head_t_temp = MDNHead(d_model, n_components)
+        self.head_delta_aus  = MDNHead(d_model, n_components)
+        self.head_t_aus_time  = MDNHead(d_model, n_components)
+        self.head_t_temper = MDNHead(d_model, n_components)
+        self.head_t_temper_time = MDNHead(d_model, n_components)
         self.head_quench = GumbelSoftmaxHead(d_model, n_quench_categories)
 
     def _scale(self, v, lo, hi): return lo + (v+1)*0.5*(hi-lo)
@@ -204,7 +204,7 @@ class AutoregressivePolicy(nn.Module):
         tgt    = self.sos_token.expand(B,-1,-1)
         lp     = torch.zeros(B, device=dev)
         out    = []
-        heads  = [self.head_delta, self.head_t_aus, self.head_temper, self.head_t_temp]
+        heads  = [self.head_delta_aus, self.head_t_aus_time, self.head_t_temper, self.head_t_temper_time]
         T_aus  = None
 
         for step in range(5):
