@@ -1,8 +1,6 @@
-"""
-MAST Inverse Design — Steel Heat Treatment Recommender (PRO VERSION)
-Production-ready Streamlit application featuring Object-Oriented architecture,
-interactive Plotly visualizations, native DOM cards, and state management.
-"""
+# MAST Inverse Design — Steel Heat Treatment Recommender (PRO VERSION)
+# Production-ready Streamlit application featuring Object-Oriented architecture,
+# interactive Plotly visualizations, native DOM cards, and state management.
 
 import streamlit as st
 import torch
@@ -303,14 +301,14 @@ class SteelRecommenderPro:
         self.initialize_state()
 
     def initialize_state(self):
-        """Ensures session variables persist across Streamlit re-runs."""
+        # Ensures session variables persist across Streamlit re-runs.
         if 'models' not in st.session_state:
             st.session_state.models = bootstrap_models()
         if 'results' not in st.session_state:
             st.session_state.results = None
 
     def inject_css(self):
-        """Injects enterprise-grade, responsive CSS and the ambient Canvas animation."""
+        # Injects enterprise-grade, responsive CSS and the ambient Canvas animation.
         st.markdown("""
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600;700&display=swap');
@@ -411,7 +409,7 @@ class SteelRecommenderPro:
 
 
     def create_plotly_comparison(self, targets: Dict[str, float], results: List[Dict]) -> go.Figure:
-        """Generates a highly professional, interactive, monochrome Plotly graph."""
+        # Generates a highly professional, interactive, monochrome Plotly graph.
         fig = go.Figure()
         props = PROPERTY_NAMES
         
@@ -449,7 +447,7 @@ class SteelRecommenderPro:
 
 
     def render_sidebar(self):
-        """Constructs the sidebar for model injection and chemical constraints."""
+        # Constructs the sidebar for model injection and chemical constraints.
         with st.sidebar:
             st.markdown("### `SYSTEM COMPONENT` ⚙️")
             st.markdown("---")
@@ -508,7 +506,7 @@ class SteelRecommenderPro:
 
 
     def execute_inference(self, targets: Dict[str, float]):
-        """Runs the RL Policy and evaluates with the Forward Ensemble."""
+        # Runs the RL Policy and evaluates with the Forward Ensemble.
         fwd, actor, prop_mean, prop_std, device = st.session_state.models
         
         comp_arr = np.array([self.comp[e] for e in ELEMENT_NAMES], dtype=np.float32)
@@ -551,7 +549,7 @@ class SteelRecommenderPro:
 
 
     def render_native_process_cards(self):
-        """Builds beautiful HTML cards for recommendations avoiding static Matplotlib images."""
+        # Builds beautiful HTML cards for recommendations avoiding static Matplotlib images.
         if not st.session_state.results: return
         
         html_blocks = ['<div class="pro-card-container">']
@@ -572,7 +570,7 @@ class SteelRecommenderPro:
 
 
     def render_main(self):
-        """Constructs the primary user interface tabs and triggers."""
+        # Constructs the primary user interface tabs and triggers.
         st.markdown("""
         <div style="border-bottom: 1px solid #333; padding-bottom: 1rem; margin-bottom: 2rem; margin-top: 1rem;">
             <h1 style="font-size: 2.5rem; margin:0; letter-spacing:-1px;">MAST · Inverse Design</h1>
@@ -620,7 +618,7 @@ class SteelRecommenderPro:
 
                 st.markdown("#### METRIC COMPARISON ANALYSIS")
                 fig = self.create_plotly_comparison(targets, st.session_state.results)
-                st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+                st.plotly_chart(fig, width="stretch", config={'displayModeBar': False})
 
                 # High level detail table
                 rows = []
@@ -630,7 +628,7 @@ class SteelRecommenderPro:
                     for p in PROPERTY_NAMES:
                         row[p] = f"{r['pred'][p]:.1f} ± {r['std'][p]:.1f}"
                     rows.append(row)
-                st.dataframe(pd.DataFrame(rows).set_index('Rank'), use_container_width=True)
+                st.dataframe(pd.DataFrame(rows).set_index('Rank'), width="stretch")
 
         with tab2:
             if st.session_state.models is None:
@@ -673,7 +671,7 @@ class SteelRecommenderPro:
 
 
     def run(self):
-        """Entry point mapping to execute the Application."""
+        # Entry point mapping to execute the Application.
         self.render_sidebar()
         self.render_main()
 
