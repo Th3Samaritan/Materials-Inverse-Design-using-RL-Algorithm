@@ -419,7 +419,7 @@ class SteelRecommenderPro:
         t_vals = [targets[p] for p in props]
         fig.add_trace(go.Bar(
             x=[f"{p}<br>({PROP_UNITS[p]})" for p in props], y=t_vals, name='Target Goal',
-            marker=dict(color='rgba(0,0,0,0)', line=dict(color='#FFFFFF', width=2, dash='solid')),
+            marker=dict(color='rgba(0,0,0,0)', line=dict(color='#FFFFFF', width=2)),
             hovertemplate='%{x}: %{y}<extra></extra>'
         ))
 
