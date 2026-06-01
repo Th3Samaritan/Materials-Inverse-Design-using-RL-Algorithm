@@ -9,7 +9,7 @@ import torch.nn.functional as F
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-import math, io, os, textwrap
+import math, io, os
 from pathlib import Path
 from typing import List, Tuple, Optional, Dict, Any
 
@@ -28,6 +28,9 @@ PROPERTY_NAMES = ['UTS','YS','elongation','reduction_of_area','HRC','impact_ener
 QUENCH_MAP     = {0: 'Water', 1: 'Oil', 2: 'Air', 3: 'Polymer'}
 PROP_UNITS     = {'UTS': 'MPa', 'YS': 'MPa', 'elongation': '%',
                   'reduction_of_area': '%', 'HRC': '', 'impact_energy_J': 'J'}
+
+# High-Visibility Palette for the Plotly Graphs against the B&W Theme
+RANK_COLORS = ['#00E5FF', '#D500F9', '#00E676', '#FFEA00', '#FF3D00']
 
 COMP_RANGES = {
     'C':(0.05,0.80), 'Si':(0.05,0.50), 'Mn':(0.30,2.00),
@@ -68,12 +71,10 @@ class ForwardMember(nn.Module):
     def forward(self, x): return self.net(x)
 
 class ForwardEnsemble(nn.Module):
-    def __init__(self, n_comp=15, n_proc=5, n_prop=6, n_members=5,
-                 hidden_dims=(256,256,128), dropout=0.05):
+    def __init__(self, n_comp=15, n_proc=5, n_prop=6, n_members=5, hidden_dims=(256,256,128), dropout=0.05):
         super().__init__()
         in_dim = n_comp + n_proc
-        self.members = nn.ModuleList([ForwardMember(in_dim, n_prop, hidden_dims, dropout)
-                                      for _ in range(n_members)])
+        self.members = nn.ModuleList([ForwardMember(in_dim, n_prop, hidden_dims, dropout) for _ in range(n_members)])
         self.register_buffer('input_mean',  torch.zeros(in_dim))
         self.register_buffer('input_std',   torch.ones(in_dim))
         self.register_buffer('output_mean', torch.zeros(n_prop))
@@ -125,8 +126,7 @@ class PositionalEncoding(nn.Module):
         pe[:, 0::2] = torch.sin(pos * div)
         pe[:, 1::2] = torch.cos(pos * div)
         self.register_buffer('pe', pe)
-    def forward(self, x):
-        return self.dropout(x + self.pe[:x.size(1)].unsqueeze(0))
+    def forward(self, x): return self.dropout(x + self.pe[:x.size(1)].unsqueeze(0))
 
 class TransformerDecoder(nn.Module):
     def __init__(self, d_model=64, nhead=4, num_layers=2, dim_feedforward=256, dropout=0.1, max_seq_len=5):
@@ -203,7 +203,6 @@ class AutoregressivePolicy(nn.Module):
         lp     = torch.zeros(B, device=dev)
         out    = []
         heads  = [self.head_delta_aus, self.head_t_aus_time, self.head_t_temper, self.head_t_temper_time]
-        T_aus  = None
 
         for step in range(5):
             h = self.decoder(tgt, memory)[:,-1,:]
@@ -259,18 +258,15 @@ def compute_ac3_torch(comp):
 
 @st.cache_resource(show_spinner="Initializing Model Weights into Memory...")
 def bootstrap_models(fwd_bytes: Optional[bytes] = None, pol_bytes: Optional[bytes] = None):
-    """Loads weights dynamically from either passed bytes or local paths."""
     device = torch.device('cpu')
     
     def _instantiate(fwd_ckpt, pol_ckpt):
         fwd = ForwardEnsemble().to(device)
         fwd.load_state_dict(fwd_ckpt['model_state_dict'])
         fwd.eval()
-
         actor = AutoregressivePolicy().to(device)
         actor.load_state_dict(pol_ckpt['actor_state_dict'])
         actor.eval()
-        
         return fwd, actor, pol_ckpt.get('prop_mean'), pol_ckpt.get('prop_std'), device
 
     if fwd_bytes and pol_bytes:
@@ -280,7 +276,6 @@ def bootstrap_models(fwd_bytes: Optional[bytes] = None, pol_bytes: Optional[byte
                 torch.load(f2, map_location=device, weights_only=False)
             )
 
-    # Auto-load fallback
     fwd_path = next((p for p in [Path("forward_model.pt"), Path("checkpoints/forward_model.pt")] if p.exists()), None)
     pol_path = next((p for p in [Path("policy.pt"), Path("checkpoints/policy.pt")] if p.exists()), None)
     
@@ -293,7 +288,7 @@ def bootstrap_models(fwd_bytes: Optional[bytes] = None, pol_bytes: Optional[byte
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-#  Professional UI Engine (Object-Oriented Structure)
+#  Professional UI Engine (Completely Overhauled Structural Layout)
 # ─────────────────────────────────────────────────────────────────────────────
 class SteelRecommenderPro:
     def __init__(self):
@@ -301,188 +296,122 @@ class SteelRecommenderPro:
         self.initialize_state()
 
     def initialize_state(self):
-        # Ensures session variables persist across Streamlit re-runs.
         if 'models' not in st.session_state:
             st.session_state.models = bootstrap_models()
         if 'results' not in st.session_state:
             st.session_state.results = None
 
     def inject_css(self):
-        # Using un-indented strings prevents Streamlit's Markdown parser from turning it into a <pre><code> block
-        html = """
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600;700&display=swap');
-
-/* Global Resets */
-html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
-    background-color: #030303 !important;
-    color: #FFFFFF !important;
-}
-
-/* Typography */
-h1, h2, h3, h4, h5, h6 { font-family: 'Space Mono', monospace !important; color: #FFFFFF !important; }
-
-/* Background Canvas */
-#ambient-canvas {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    z-index: -1; pointer-events: none; opacity: 0.12;
-}
-
-/* Sidebar Styling */
-[data-testid="stSidebar"] {
-    background-color: #0a0a0a !important; border-right: 1px solid #222 !important;
-}
-
-/* Native HTML Process Cards */
-.pro-card-container {
-    display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; margin-bottom: 2rem;
-}
-.pro-card {
-    background: linear-gradient(145deg, #0d0d0d, #050505);
-    border: 1px solid #333; 
-    border-left: 3px solid #FFFFFF; /* High contrast B&W design accent */
-    border-radius: 6px; padding: 1.5rem;
-    flex: 1; min-width: 220px; transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-}
-.pro-card:hover {
-    border-color: #777; transform: translateY(-3px); box-shadow: 0 8px 25px rgba(255,255,255,0.05);
-}
-.pro-card-header {
-    font-family: 'Space Mono', monospace; font-size: 1.2rem; font-weight: 700;
-    color: #FFF; text-align: center; margin-bottom: 0.3rem;
-}
-.pro-card-score {
-    text-align: center; color: #888; font-size: 0.8rem; font-family: 'Space Mono', monospace;
-    border-bottom: 1px dashed #333; padding-bottom: 0.8rem; margin-bottom: 1rem;
-}
-.pro-card-row { margin: 0.5rem 0; font-family: 'Space Mono', monospace; font-size: 0.9rem; }
-.pro-label { color: #888; width: 85px; display: inline-block; font-weight: 700; }
-.pro-value { color: #FFFFFF; font-weight: 600; }
-
-/* Unified Buttons */
-div.stButton > button {
-    background-color: #FFFFFF !important; color: #000000 !important;
-    border: none !important; font-family: 'Space Mono', monospace;
-    font-weight: 700; border-radius: 4px !important; padding: 0.6rem 2rem !important;
-    transition: all 0.2s ease !important;
-}
-div.stButton > button:hover {
-    background-color: #cccccc !important; box-shadow: 0 0 15px rgba(255,255,255,0.3);
-}
-</style>
-
-<!-- Ambient Neural Network Canvas -->
-<canvas id="ambient-canvas"></canvas>
-<script>
-const canvas = document.getElementById('ambient-canvas');
-const ctx = canvas.getContext('2d');
-let width = canvas.width = window.innerWidth;
-let height = canvas.height = window.innerHeight;
-const numPoints = 75; const points = [];
-for (let i = 0; i < numPoints; i++) {
-    points.push({ x: Math.random() * width, y: Math.random() * height,
-                  vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4,
-                  radius: Math.random() * 1.5 + 1 });
-}
-window.addEventListener('resize', () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; });
-function animate() {
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    ctx.lineWidth = 0.8;
-    for (let i = 0; i < numPoints; i++) {
-        const p = points[i]; p.x += p.vx; p.y += p.vy;
-        if (p.x < 0 || p.x > width) p.vx *= -1; if (p.y < 0 || p.y > height) p.vy *= -1;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
-        for (let j = i + 1; j < numPoints; j++) {
-            const p2 = points[j]; const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
-            if (dist < 160) {
-                ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 * (1 - dist / 160)})`;
-                ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
-            }
-        }
-    }
-    requestAnimationFrame(animate);
-}
-animate();
-</script>
-"""
-        st.markdown(html, unsafe_allow_html=True)
+        # Strict zero-indentation strings to absolutely prevent Streamlit Markdown <code> bugs
+        css = ""
+        css += "<style>\n"
+        css += "@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600;700&display=swap');\n"
+        css += "/* True B&W Foundation */\n"
+        css += "html, body, [class*='css'], .stApp { font-family: 'Inter', sans-serif; background-color: #000000 !important; color: #FFFFFF !important; }\n"
+        css += "h1, h2, h3, h4, h5, h6 { font-family: 'Space Mono', monospace !important; color: #FFFFFF !important; }\n"
+        css += "/* Elegant Input Fields */\n"
+        css += ".stNumberInput > div > div > input { background-color: #0D0D0D !important; color: #FFFFFF !important; border: 1px solid #333333 !important; font-family: 'Space Mono' !important; }\n"
+        css += ".stSelectbox > div > div > div { background-color: #0D0D0D !important; color: #FFFFFF !important; border: 1px solid #333333 !important; }\n"
+        css += "/* Tab Structure */\n"
+        css += "[data-baseweb='tab-list'] { background-color: #0D0D0D; padding: 0.5rem; border-radius: 8px; border: 1px solid #222222; }\n"
+        css += "[data-baseweb='tab'] { color: #888888; font-family: 'Space Mono', monospace; font-size: 0.9rem; }\n"
+        css += "[aria-selected='true'] { background-color: #222222 !important; color: #FFFFFF !important; border-radius: 4px; }\n"
+        css += "/* Custom Dashboard Containers */\n"
+        css += ".dash-panel { background-color: #0A0A0A; border: 1px solid #333333; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }\n"
+        css += ".dash-title { font-family: 'Space Mono', monospace; font-size: 1.1rem; color: #FFFFFF; border-bottom: 1px solid #333333; padding-bottom: 0.8rem; margin-bottom: 1.2rem; text-transform: uppercase; }\n"
+        css += "/* Process Cards */\n"
+        css += ".pro-card-wrapper { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }\n"
+        css += ".pro-card { background: #0A0A0A; border: 1px solid #333333; border-radius: 6px; padding: 1.2rem; flex: 1; min-width: 220px; transition: transform 0.2s ease, border-color 0.2s ease; }\n"
+        css += ".pro-card:hover { border-color: #FFFFFF; transform: translateY(-2px); }\n"
+        css += ".pro-card-header { font-family: 'Space Mono', monospace; font-size: 1.3rem; font-weight: 700; color: #FFFFFF; text-align: center; margin-bottom: 0.2rem; }\n"
+        css += ".pro-card-score { text-align: center; color: #888888; font-size: 0.8rem; font-family: 'Space Mono', monospace; border-bottom: 1px dashed #333333; padding-bottom: 0.8rem; margin-bottom: 1rem; }\n"
+        css += ".pro-card-row { margin: 0.6rem 0; font-family: 'Space Mono', monospace; font-size: 0.95rem; display: flex; justify-content: space-between; }\n"
+        css += ".pro-label { color: #888888; font-weight: 700; }\n"
+        css += ".pro-value { color: #FFFFFF; font-weight: 600; text-align: right; }\n"
+        css += "/* Giant KPI Metrics for Forward Pass */\n"
+        css += ".kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }\n"
+        css += ".kpi-card { background: #0A0A0A; border: 1px solid #333333; padding: 1.5rem; border-radius: 6px; text-align: center; border-bottom: 3px solid #FFFFFF; }\n"
+        css += ".kpi-title { font-family: 'Space Mono', monospace; color: #888888; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 0.5rem; }\n"
+        css += ".kpi-val { font-family: 'Space Mono', monospace; color: #FFFFFF; font-size: 2.2rem; font-weight: 700; }\n"
+        css += ".kpi-unit { font-size: 1rem; color: #888888; }\n"
+        css += ".kpi-err { font-family: 'Space Mono', monospace; color: #555555; font-size: 0.8rem; margin-top: 0.5rem; }\n"
+        css += "/* Primary Button Overhaul */\n"
+        css += "div.stButton > button { width: 100%; background-color: #FFFFFF !important; color: #000000 !important; border: none !important; font-family: 'Space Mono', monospace; font-size: 1.1rem; font-weight: 700; border-radius: 4px !important; padding: 0.8rem !important; transition: background-color 0.2s ease !important; }\n"
+        css += "div.stButton > button:hover { background-color: #CCCCCC !important; }\n"
+        css += "/* Subtle B&W Background Animation */\n"
+        css += "#ambient-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.08; }\n"
+        css += "</style>\n"
+        
+        css += "<canvas id='ambient-canvas'></canvas>\n"
+        css += "<script>\n"
+        css += "const cvs = document.getElementById('ambient-canvas'); const ctx = cvs.getContext('2d');\n"
+        css += "let w = cvs.width = window.innerWidth; let h = cvs.height = window.innerHeight;\n"
+        css += "const pts = []; for (let i=0; i<60; i++) pts.push({x: Math.random()*w, y: Math.random()*h, vx: (Math.random()-0.5)*0.3, vy: (Math.random()-0.5)*0.3, r: Math.random()*1.2+0.5});\n"
+        css += "window.addEventListener('resize', () => { w = cvs.width = window.innerWidth; h = cvs.height = window.innerHeight; });\n"
+        css += "function draw() { ctx.clearRect(0,0,w,h); ctx.fillStyle='#FFFFFF'; ctx.lineWidth=0.5;\n"
+        css += "for(let i=0; i<pts.length; i++) { let p = pts[i]; p.x += p.vx; p.y += p.vy; if(p.x<0||p.x>w) p.vx*=-1; if(p.y<0||p.y>h) p.vy*=-1;\n"
+        css += "ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();\n"
+        css += "for(let j=i+1; j<pts.length; j++) { let p2 = pts[j]; let d = Math.hypot(p.x-p2.x, p.y-p2.y); if(d<150) { ctx.strokeStyle=`rgba(255,255,255,${0.1*(1-d/150)})`; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); } } } requestAnimationFrame(draw); }\n"
+        css += "draw();\n"
+        css += "</script>\n"
+        
+        st.markdown(css, unsafe_allow_html=True)
 
 
     def create_plotly_comparison(self, targets: Dict[str, float], results: List[Dict]) -> go.Figure:
-        # Generates a highly professional, interactive Plotly graph.
         fig = go.Figure()
         props = PROPERTY_NAMES
         
-        # Target Line (Hollow bars with vivid accent for high visibility)
+        # Highly visible Target Line
         t_vals = [targets[p] for p in props]
         fig.add_trace(go.Bar(
-            x=[f"{p}<br>({PROP_UNITS[p]})" for p in props], y=t_vals, name='Target Goal',
-            marker=dict(color='rgba(0,0,0,0)', line=dict(color='#00E5FF', width=2)), # Electric Cyan Accent
+            x=[f"{p}<br>({PROP_UNITS[p]})" for p in props], y=t_vals, name='TARGET GOAL',
+            marker=dict(color='rgba(0,0,0,0)', line=dict(color='#FFFFFF', width=2, dash='dot')), 
             hovertemplate='%{x}: %{y}<extra></extra>'
         ))
 
-        # Vibrant but professional 'Steel & Heat' palette to distinguish ranks clearly
-        # White (Rank 1), Steel Blue (Rank 2), Teal (Rank 3), Gold (Rank 4), Coral (Rank 5)
-        shades = ['#FFFFFF', '#5D9CEC', '#48CFAD', '#FFCE54', '#FC6E51']
+        # Vibrant colors against the dark layout to maximize readability
         for i, r in enumerate(results):
             pred = [r['pred'][p] for p in props]
             err = [r['std'][p] for p in props]
+            color = RANK_COLORS[i % len(RANK_COLORS)]
             fig.add_trace(go.Bar(
                 x=[f"{p}<br>({PROP_UNITS[p]})" for p in props], y=pred,
-                name=f"Rank #{r['rank']} (Score: {r['score']:.1f})",
-                marker_color=shades[i % len(shades)],
-                error_y=dict(type='data', array=err, visible=True, color='#E6E6E6', thickness=1.5),
+                name=f"RANK #{r['rank']} (Score: {r['score']:.1f})",
+                marker_color=color,
+                error_y=dict(type='data', array=err, visible=True, color='#FFFFFF', thickness=1.5),
                 hovertemplate='%{x}: %{y:.1f} ± %{error_y.array:.1f}<extra></extra>'
             ))
 
-        # Removed the internal Plotly `title` dictionary to prevent overlap with the Streamlit Markdown header.
+        # Legend strictly forced to the bottom to prevent any overlap
         fig.update_layout(
             barmode='group', plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='#E6E6E6', family='Space Mono, monospace', size=11),
-            xaxis=dict(showgrid=False, linecolor='#444'),
-            yaxis=dict(showgrid=True, gridcolor='#222', linecolor='#444', title='Metric Value'),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-            margin=dict(l=20, r=20, t=20, b=20) # Tightened top margin significantly
+            font=dict(color='#E6E6E6', family='Space Mono, monospace', size=12),
+            xaxis=dict(showgrid=False, linecolor='#444444'),
+            yaxis=dict(showgrid=True, gridcolor='#222222', linecolor='#444444', title='Metric Value'),
+            legend=dict(orientation="h", yanchor="top", y=-0.15, xanchor="center", x=0.5), # Crucial Overlap Fix
+            margin=dict(l=40, r=40, t=20, b=80) 
         )
         return fig
 
 
     def render_sidebar(self):
-        # Constructs the sidebar for model injection and chemical constraints.
         with st.sidebar:
-            st.markdown("### `SYSTEM COMPONENT` ⚙️")
-            st.markdown("---")
+            st.markdown("<h2 style='font-size: 1.4rem; letter-spacing: -1px; margin-bottom: 1.5rem;'>SYSTEM CONTROLS</h2>", unsafe_allow_html=True)
             
-            # Status Banner
             if st.session_state.models is not None:
-                html_online = """
-<div style="border: 1px solid #2ECC71; padding: 0.8rem; background-color: #051005; border-radius: 4px; margin-bottom:1rem;">
-    <p style="margin:0; font-size:0.75rem; color:#888; font-family:'Space Mono';">ENGINE STATUS</p>
-    <p style="margin:0; font-size:0.95rem; font-weight:bold; color:#2ECC71; font-family:'Space Mono';">✓ ONLINE & READY</p>
-</div>
-"""
-                st.markdown(html_online, unsafe_allow_html=True)
+                st.markdown("<div style='border-left: 3px solid #00E676; padding: 0.5rem 1rem; background: #0A0A0A; border-radius: 4px; margin-bottom: 2rem;'><span style='color: #00E676; font-family: Space Mono; font-weight: bold; font-size: 0.9rem;'>● ENGINE ONLINE</span></div>", unsafe_allow_html=True)
             else:
-                html_offline = """
-<div style="border: 1px dashed #E74C3C; padding: 0.8rem; background-color: #100505; border-radius: 4px; margin-bottom:1rem;">
-    <p style="margin:0; font-size:0.75rem; color:#888; font-family:'Space Mono';">ENGINE STATUS</p>
-    <p style="margin:0; font-size:0.95rem; font-weight:bold; color:#E74C3C; font-family:'Space Mono';">✗ OFFLINE</p>
-    <p style="margin:0.2rem 0 0 0; font-size:0.75rem; color:#aaa;">Upload model weights below.</p>
-</div>
-"""
-                st.markdown(html_offline, unsafe_allow_html=True)
+                st.markdown("<div style='border-left: 3px solid #FF3D00; padding: 0.5rem 1rem; background: #0A0A0A; border-radius: 4px; margin-bottom: 2rem;'><span style='color: #FF3D00; font-family: Space Mono; font-weight: bold; font-size: 0.9rem;'>○ ENGINE OFFLINE</span></div>", unsafe_allow_html=True)
                 
-                fwd_file = st.file_uploader("Forward Model (.pt)", type=['pt'])
-                pol_file = st.file_uploader("Policy Model (.pt)", type=['pt'])
+                fwd_file = st.file_uploader("Inject Forward Model (.pt)", type=['pt'])
+                pol_file = st.file_uploader("Inject Policy Model (.pt)", type=['pt'])
                 if fwd_file and pol_file:
                     st.session_state.models = bootstrap_models(fwd_file.read(), pol_file.read())
                     st.rerun()
 
-            st.markdown("**STEEL CHEMICAL COMPOSITION**")
-            preset = st.selectbox("Alloy Preset", list(STEEL_PRESETS.keys()))
+            st.markdown("<div style='font-family: Space Mono; font-size: 0.85rem; color: #888; text-transform: uppercase; margin-bottom: 0.5rem;'>Chemical Composition</div>", unsafe_allow_html=True)
+            preset = st.selectbox("Load Standard Alloy", list(STEEL_PRESETS.keys()))
             preset_vals = STEEL_PRESETS[preset]
 
             self.comp = {}
@@ -498,28 +427,18 @@ animate();
             fe_calc = 100.0 - sum(self.comp.values())
             self.comp['Fe'] = fe_calc
             
-            # Iron safety indicator
-            fe_color = '#2ECC71' if 60 <= fe_calc <= 99.9 else '#E74C3C'
-            html_fe = f"""
-<div style="padding: 0.5rem; background: #111; border: 1px solid #333; margin-top: 1rem;">
-    <span style="font-family:'Space Mono'; font-size:0.8rem; color:#aaa;">Fe Balance:</span><br>
-    <span style="font-family:'Space Mono'; font-size:1.1rem; font-weight:bold; color:{fe_color}">{fe_calc:.3f}%</span>
-</div>
-"""
-            st.markdown(html_fe, unsafe_allow_html=True)
+            fe_color = '#00E676' if 60 <= fe_calc <= 99.9 else '#FF3D00'
+            st.markdown(f"<div style='margin-top: 1rem; padding: 1rem; background: #0A0A0A; border: 1px solid #333;'><div style='color: #888; font-size: 0.75rem; font-family: Space Mono;'>IRON (Fe) BALANCE</div><div style='color: {fe_color}; font-size: 1.2rem; font-weight: bold; font-family: Space Mono;'>{fe_calc:.3f}%</div></div>", unsafe_allow_html=True)
 
-            st.markdown("---")
-            self.n_cand = st.slider("Monte Carlo Candidates", 100, 1000, 300, 50)
-            self.top_k  = st.slider("Display Candidates Count", 1, 10, 4)
+            st.markdown("<div style='margin-top: 2rem; font-family: Space Mono; font-size: 0.85rem; color: #888; text-transform: uppercase; margin-bottom: 0.5rem;'>Hyperparameters</div>", unsafe_allow_html=True)
+            self.n_cand = st.slider("Monte Carlo Pool", 100, 1000, 300, 50)
+            self.top_k  = st.slider("Output Ranks", 1, 10, 4)
 
 
     def execute_inference(self, targets: Dict[str, float]):
-        # Runs the RL Policy and evaluates with the Forward Ensemble.
         fwd, actor, prop_mean, prop_std, device = st.session_state.models
-        
         comp_arr = np.array([self.comp[e] for e in ELEMENT_NAMES], dtype=np.float32)
         tgt_arr = np.array([targets[p] for p in PROPERTY_NAMES], dtype=np.float32)
-        
         comp_t = torch.tensor(comp_arr, device=device).unsqueeze(0).expand(self.n_cand, -1)
         tgt_t  = torch.tensor(tgt_arr, device=device).unsqueeze(0).expand(self.n_cand, -1)
         ac3 = compute_ac3_torch(comp_t)
@@ -527,7 +446,6 @@ animate();
         with torch.no_grad():
             processes, _ = actor(comp_t, tgt_t, ac3, temperature=0.6)
             P_hat, var   = fwd(comp_t, processes)
-
             if prop_mean is not None and prop_std is not None:
                 pm, ps = prop_mean.to(device), prop_std.to(device)
                 P_n, T_n = (P_hat - pm) / ps, (tgt_t - pm) / ps
@@ -538,7 +456,6 @@ animate();
             mse = ((P_n - T_n)**2 * weights).sum(-1) / weights.sum()
             unc = (var / (prop_std**2 + 1e-8) if prop_std is not None else var).sum(-1)
             scores = -mse - 0.002 * unc
-
             top_idx = scores.argsort(descending=True)[:self.top_k]
             
             results = []
@@ -557,42 +474,39 @@ animate();
 
 
     def render_native_process_cards(self):
-        # Builds HTML cards avoiding Markdown parsing issues by omitting indentation.
+        # Strict zero-indentation inside the HTML string to prevent Markdown parsing bugs
         if not st.session_state.results: return
         
-        html = '<div class="pro-card-container">\n'
-        for r in st.session_state.results:
-            html += f"""<div class="pro-card">
-    <div class="pro-card-header">RANK #{r['rank']}</div>
-    <div class="pro-card-score">Score: {r['score']:.2f}</div>
-    <div class="pro-card-row"><span class="pro-label">T_aus:</span> <span class="pro-value">{r['T_aus']} °C</span></div>
-    <div class="pro-card-row"><span class="pro-label">t_aus:</span> <span class="pro-value">{r['t_aus']} hrs</span></div>
-    <div class="pro-card-row"><span class="pro-label">Quench:</span> <span class="pro-value" style="color: #FFF;">{r['quench']}</span></div>
-    <div class="pro-card-row"><span class="pro-label">T_temp:</span> <span class="pro-value">{r['T_temper']} °C</span></div>
-    <div class="pro-card-row"><span class="pro-label">t_temp:</span> <span class="pro-value">{r['t_temper']} hrs</span></div>
-</div>\n"""
-        html += '</div>'
+        html = ""
+        html += "<div class='pro-card-wrapper'>\n"
+        for i, r in enumerate(st.session_state.results):
+            color = RANK_COLORS[i % len(RANK_COLORS)]
+            html += f"<div class='pro-card' style='border-top: 3px solid {color};'>\n"
+            html += f"<div class='pro-card-header'>RANK #{r['rank']}</div>\n"
+            html += f"<div class='pro-card-score'>Score: {r['score']:.2f}</div>\n"
+            html += f"<div class='pro-card-row'><span class='pro-label'>T_austenitize</span><span class='pro-value'>{r['T_aus']} °C</span></div>\n"
+            html += f"<div class='pro-card-row'><span class='pro-label'>t_austenitize</span><span class='pro-value'>{r['t_aus']} hrs</span></div>\n"
+            html += f"<div class='pro-card-row'><span class='pro-label'>Quenchant</span><span class='pro-value' style='color:{color};'>{r['quench']}</span></div>\n"
+            html += f"<div class='pro-card-row'><span class='pro-label'>T_tempering</span><span class='pro-value'>{r['T_temper']} °C</span></div>\n"
+            html += f"<div class='pro-card-row'><span class='pro-label'>t_tempering</span><span class='pro-value'>{r['t_temper']} hrs</span></div>\n"
+            html += "</div>\n"
+        html += "</div>\n"
         st.markdown(html, unsafe_allow_html=True)
 
 
     def render_main(self):
-        # Constructs the primary user interface tabs and triggers.
-        html_title = """
-<div style="border-bottom: 1px solid #333; padding-bottom: 1rem; margin-bottom: 2rem; margin-top: 1rem;">
-    <h1 style="font-size: 2.5rem; margin:0; letter-spacing:-1px;">MAST · Inverse Design</h1>
-    <h3 style="font-size: 1rem; color: #888; margin:0; font-weight: normal;">Production Grade Policy Generator & Forward Evaluator</h3>
-</div>
-"""
-        st.markdown(html_title, unsafe_allow_html=True)
+        st.markdown("<h1 style='font-size: 3rem; margin:0; letter-spacing: -2px; padding-top: 1rem;'>MAST<span style='color:#555;'>//</span>INVERSE</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='font-family: Space Mono; color: #888; font-size: 1rem; margin-bottom: 2rem;'>STEEL HEAT TREATMENT DESIGN WORKBENCH</p>", unsafe_allow_html=True)
 
-        tab1, tab2 = st.tabs(["🎯 INVERSE DESIGN WORKSPACE", "🔬 FORWARD PREDICTOR"])
+        tab1, tab2 = st.tabs(["[ 🎯 INVERSE DESIGN ]", "[ 🔬 FORWARD PREDICTOR ]"])
 
         with tab1:
             if st.session_state.models is None:
-                st.warning("Please upload or place model weights (`forward_model.pt` & `policy.pt`) to initialize.")
+                st.info("System waiting for PyTorch weights. Please check the left panel.")
                 return
 
-            st.markdown("#### TARGET MECHANICAL PROPERTIES")
+            # Target Input Panel
+            st.markdown("<div class='dash-panel'><div class='dash-title'>TARGET MECHANICAL PARAMETERS</div>", unsafe_allow_html=True)
             cols = st.columns(3)
             targets = {}
             for i, prop in enumerate(PROPERTY_NAMES):
@@ -603,47 +517,45 @@ animate();
                         min_value=float(lo), max_value=float(hi), value=float(default),
                         step=1.0 if lo > 5 else 0.1
                     )
-
+            
             ac3_est = compute_ac3_np(self.comp['C'], self.comp['Mn'], self.comp['Si'], self.comp['Ni'],
                                      self.comp['Cr'], self.comp['Mo'], self.comp['V'], self.comp['Cu'])
-            
-            html_ac3 = f"""
-<div style="font-family:'Space Mono'; font-size:0.85rem; color:#aaa; margin: 1.5rem 0;">
-    Calculated Ac3 Point: <strong style="color:#FFF;">{ac3_est:.1f} °C</strong> 
-    (Bounds: {ac3_est+30:.0f}°C – {ac3_est+150:.0f}°C)
-</div>
-"""
-            st.markdown(html_ac3, unsafe_allow_html=True)
+            st.markdown(f"<div style='margin-top: 1.5rem; color: #666; font-family: Space Mono; font-size: 0.8rem;'>Calculated Ac3: <span style='color:#FFF;'>{ac3_est:.1f} °C</span> | Operating Bounds: {ac3_est+30:.0f}°C – {ac3_est+150:.0f}°C</div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
 
-            if st.button("SYNTHESIZE OPTIMAL PROCESS (RUN POLICY)"):
-                with st.spinner("Executing Deep RL Policy Gradient..."):
+            # Central Action Button
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("SYNTHESIZE OPTIMAL PROCESS (DEEP RL)"):
+                with st.spinner("Executing Policy Gradient Search..."):
                     self.execute_inference(targets)
 
             if st.session_state.results:
-                st.markdown("---")
-                st.markdown("#### THEORETICAL PROCESS PRESCRIPTIONS")
-                self.render_native_process_cards()
-
-                st.markdown("#### METRIC COMPARISON ANALYSIS")
+                st.markdown("<br><hr style='border-color: #222;'><br>", unsafe_allow_html=True)
+                
+                # Visual Dashboard Area
+                st.markdown("<div class='dash-title' style='border:none; text-align:center;'>PERFORMANCE VS TARGET METRICS</div>", unsafe_allow_html=True)
                 fig = self.create_plotly_comparison(targets, st.session_state.results)
                 st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
-                # High level detail table
-                rows = []
-                for r in st.session_state.results:
-                    row = {'Rank': r['rank'], 'Score': f"{r['score']:.2f}",
-                           'Quench': r['quench'], 'T_aus': r['T_aus'], 'T_temper': r['T_temper']}
-                    for p in PROPERTY_NAMES:
-                        row[p] = f"{r['pred'][p]:.1f} ± {r['std'][p]:.1f}"
-                    rows.append(row)
-                st.dataframe(pd.DataFrame(rows).set_index('Rank'), use_container_width=True)
+                st.markdown("<div class='dash-title' style='border:none; text-align:center; margin-top:2rem;'>THEORETICAL PROCESS PRESCRIPTIONS</div>", unsafe_allow_html=True)
+                self.render_native_process_cards()
+
+                with st.expander("VIEW RAW DATA MATRIX"):
+                    rows = []
+                    for r in st.session_state.results:
+                        row = {'Rank': r['rank'], 'Score': f"{r['score']:.2f}",
+                               'Quench': r['quench'], 'T_aus': r['T_aus'], 'T_temper': r['T_temper']}
+                        for p in PROPERTY_NAMES:
+                            row[p] = f"{r['pred'][p]:.1f} ± {r['std'][p]:.1f}"
+                        rows.append(row)
+                    st.dataframe(pd.DataFrame(rows).set_index('Rank'), use_container_width=True)
 
         with tab2:
             if st.session_state.models is None:
-                st.warning("Models offline. Cannot perform simulation.")
+                st.info("System waiting for PyTorch weights. Please check the left panel.")
                 return
                 
-            st.markdown("#### SIMULATION PARAMETERS")
+            st.markdown("<div class='dash-panel'><div class='dash-title'>SIMULATION PARAMETERS</div>", unsafe_allow_html=True)
             c1, c2, c3 = st.columns(3)
             with c1:
                 t_aus_f = st.number_input("Austenitize Temp (°C)", 750., 1100., 870.)
@@ -654,8 +566,9 @@ animate();
             with c3:
                 t_tmp_f = st.number_input("Temper Temp (°C)", 150., 700., 450.)
                 t_tmp_t = st.number_input("Temper Time (hrs)", 0.5, 8.0, 2.0)
+            st.markdown("</div>", unsafe_allow_html=True)
 
-            if st.button("RUN FORWARD SIMULATION"):
+            if st.button("EXECUTE FORWARD PASS"):
                 fwd, _, _, _, device = st.session_state.models
                 c_arr = np.array([self.comp[e] for e in ELEMENT_NAMES], dtype=np.float32)
                 p_arr = np.array([t_aus_f, t_aus_t, q_i, t_tmp_f, t_tmp_t], dtype=np.float32)
@@ -664,23 +577,23 @@ animate();
                     p_hat, var = fwd(torch.tensor(c_arr).unsqueeze(0), torch.tensor(p_arr).unsqueeze(0))
                 
                 pred, std = p_hat[0].numpy(), var[0].sqrt().numpy()
-                st.markdown("---")
                 
-                cols = st.columns(3)
+                st.markdown("<br><hr style='border-color: #222;'><br>", unsafe_allow_html=True)
+                st.markdown("<div class='dash-title' style='border:none; text-align:center;'>PREDICTED MATERIAL PROPERTIES</div>", unsafe_allow_html=True)
+                
+                html_metrics = "<div class='kpi-grid'>\n"
                 for i, prop in enumerate(PROPERTY_NAMES):
-                    with cols[i % 3]:
-                        html_metric = f"""
-<div style="background:#0a0a0a; border:1px solid #333; padding:1rem; border-radius:4px; margin-bottom:1rem;">
-    <div style="font-family:'Space Mono'; color:#888; font-size:0.8rem;">{prop}</div>
-    <div style="font-family:'Space Mono'; color:#FFF; font-size:1.5rem; font-weight:bold;">{pred[i]:.1f} <span style="font-size:1rem; color:#aaa;">{PROP_UNITS[prop]}</span></div>
-    <div style="font-family:'Space Mono'; color:#555; font-size:0.75rem;">± {std[i]:.1f} uncertainty</div>
-</div>
-"""
-                        st.markdown(html_metric, unsafe_allow_html=True)
+                    html_metrics += f"<div class='kpi-card'>\n"
+                    html_metrics += f"<div class='kpi-title'>{prop}</div>\n"
+                    html_metrics += f"<div class='kpi-val'>{pred[i]:.1f} <span class='kpi-unit'>{PROP_UNITS[prop]}</span></div>\n"
+                    html_metrics += f"<div class='kpi-err'>± {std[i]:.1f} Uncertainty</div>\n"
+                    html_metrics += "</div>\n"
+                html_metrics += "</div>\n"
+                
+                st.markdown(html_metrics, unsafe_allow_html=True)
 
 
     def run(self):
-        # Entry point mapping to execute the Application.
         self.render_sidebar()
         self.render_main()
 
