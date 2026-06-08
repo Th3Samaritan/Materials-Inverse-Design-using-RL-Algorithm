@@ -320,8 +320,8 @@ class SteelRecommenderPro:
     --border:    #e7e5e4;
     --border-strong: #d6d3d1;
     --text:      #1c1917;
-    --text-muted:#57534e;
-    --text-soft: #a8a29e;
+    --text-muted:#52525b;
+    --text-soft: #78716c;
     --accent:    #1c1917;
     --accent-hover:#292524;
     --accent-inv:#fafaf9;
@@ -342,8 +342,8 @@ class SteelRecommenderPro:
     --border:    #2e2e33;
     --border-strong: #404045;
     --text:      #fafaf9;
-    --text-muted:#a8a29e;
-    --text-soft: #78716c;
+    --text-muted:#d4d4d8;
+    --text-soft: #a1a1aa;
     --accent:    #fafaf9;
     --accent-hover:#e7e5e4;
     --accent-inv:#0c0c0d;
@@ -438,70 +438,65 @@ section[data-testid="stSidebar"],
     border-top: 1px solid var(--border) !important;
     margin: 1.25rem 0 !important;
 }
-[data-testid="stSidebar"] .stMarkdown,
-[data-testid="stSidebar"] .stMarkdown p,
-[data-testid="stSidebar"] .stMarkdown span,
-[data-testid="stSidebar"] label,
-[data-testid="stSidebar"] [data-testid="stWidgetLabel"] {
-    color: var(--text) !important;
-}
 [data-testid="stSidebarNav"] { background-color: var(--surface) !important; }
-/* Sidebar collapse arrow */
 [data-testid="stSidebarCollapseButton"] button,
 [data-testid="collapsedControl"] {
     color: var(--text) !important;
     background: var(--surface) !important;
 }
 
-/* ── Sidebar text lockdown — force every text node to Inter + --text ── */
-[data-testid="stSidebar"] *:not(svg):not(path):not(circle):not(line):not(input) {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-}
-[data-testid="stSidebar"] input,
-[data-testid="stSidebar"] .stNumberInput input,
-[data-testid="stSidebar"] .stTextInput input {
-    font-family: 'JetBrains Mono', 'Menlo', monospace !important;
-}
+/* ── Sidebar typography — single source of truth ──
+   Two fonts only: Inter for prose/labels, JetBrains Mono for numeric values. */
 [data-testid="stSidebar"] p,
 [data-testid="stSidebar"] span,
 [data-testid="stSidebar"] div,
 [data-testid="stSidebar"] label,
-[data-testid="stSidebar"] li,
-[data-testid="stSidebar"] [data-testid="stMarkdownContainer"],
-[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] *,
+[data-testid="stSidebar"] button,
 [data-testid="stSidebar"] [data-baseweb] {
-    color: var(--text) !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    color: var(--text);
 }
-[data-testid="stSidebar"] [data-testid="stWidgetLabel"],
-[data-testid="stSidebar"] [data-testid="stWidgetLabel"] *,
-[data-testid="stSidebar"] label > div:first-child,
-[data-testid="stSidebar"] label > div:first-child * {
-    color: var(--text-muted) !important;
-    font-size: 0.74rem !important;
-    font-weight: 500 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.05em !important;
-    line-height: 1.4 !important;
-}
-[data-testid="stSidebar"] .stNumberInput input,
-[data-testid="stSidebar"] .stTextInput input,
-[data-testid="stSidebar"] [data-baseweb="select"] *,
-[data-testid="stSidebar"] [data-baseweb="select"] [role="combobox"] {
-    color: var(--text) !important;
+
+/* Inputs use mono so digits align. */
+[data-testid="stSidebar"] input,
+[data-testid="stSidebar"] [data-baseweb="input"] input {
+    font-family: 'JetBrains Mono', 'Menlo', monospace !important;
     font-size: 0.875rem !important;
-}
-[data-testid="stSidebar"] .stNumberInput input,
-[data-testid="stSidebar"] .stTextInput input {
+    color: var(--text) !important;
     background-color: var(--bg) !important;
     border-color: var(--border) !important;
+    caret-color: var(--accent) !important;
 }
 [data-testid="stSidebar"] .stNumberInput [data-baseweb="input"],
 [data-testid="stSidebar"] .stNumberInput [data-baseweb="input"] > div {
     background-color: var(--bg) !important;
 }
+
+/* Widget labels (e.g. "C (wt%)") — small uppercase muted.
+   Scoped to NOT inside a radiogroup so the theme-toggle labels stay sentence case. */
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
+[data-testid="stSidebar"] .stNumberInput label p,
+[data-testid="stSidebar"] .stTextInput label p,
+[data-testid="stSidebar"] .stSelectbox label p,
+[data-testid="stSidebar"] .stSlider label p {
+    color: var(--text-muted) !important;
+    font-size: 0.72rem !important;
+    font-weight: 500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    line-height: 1.4 !important;
+    margin-bottom: 0.3rem !important;
+}
+
+/* Selectbox display & dropdown chevron */
 [data-testid="stSidebar"] [data-baseweb="select"] > div {
     background-color: var(--bg) !important;
     border-color: var(--border) !important;
+}
+[data-testid="stSidebar"] [data-baseweb="select"] [role="combobox"],
+[data-testid="stSidebar"] [data-baseweb="select"] [data-id="select"] {
+    color: var(--text) !important;
+    font-size: 0.875rem !important;
 }
 [data-testid="stSidebar"] .stNumberInput button {
     background-color: var(--surface-2) !important;
@@ -516,18 +511,21 @@ section[data-testid="stSidebar"],
     color: var(--text-muted) !important;
     fill: var(--text-muted) !important;
 }
-/* Slider numeric labels */
+
+/* Slider min/max ticks and thumb value */
 [data-testid="stSidebar"] [data-testid="stTickBarMin"],
-[data-testid="stSidebar"] [data-testid="stTickBarMax"],
-[data-testid="stSidebar"] [data-testid="stThumbValue"] {
+[data-testid="stSidebar"] [data-testid="stTickBarMax"] {
     color: var(--text-muted) !important;
     background: transparent !important;
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: 0.72rem !important;
+    font-size: 0.7rem !important;
     font-weight: 500 !important;
 }
 [data-testid="stSidebar"] [data-testid="stThumbValue"] {
     color: var(--text) !important;
+    background: transparent !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.75rem !important;
     font-weight: 600 !important;
 }
 
@@ -772,6 +770,14 @@ button[kind="secondary"]:hover {
 .section-title::after {
     content: ''; flex: 1; height: 1px; background: var(--border);
 }
+/* In the sidebar, match the rest of the sidebar typography. */
+[data-testid="stSidebar"] .section-title {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    margin: 1.5rem 0 0.6rem 0;
+    color: var(--text-muted);
+}
 
 .pro-card-container {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -861,9 +867,10 @@ button[kind="secondary"]:hover {
     display: flex; flex-direction: column;
 }
 .status-text .label {
-    font-size: 0.68rem; color: var(--text-soft);
-    text-transform: uppercase; letter-spacing: 0.1em;
-    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
 }
 .status-text .value {
     font-size: 0.9rem; color: var(--text); font-weight: 600;
@@ -877,11 +884,16 @@ button[kind="secondary"]:hover {
     margin-top: 1rem;
 }
 .fe-pill .fe-label {
-    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
     color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
 }
 .fe-pill .fe-value {
-    font-family: 'JetBrains Mono', monospace; font-size: 1.05rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.05rem;
     font-weight: 600;
 }
 
@@ -984,6 +996,36 @@ button[kind="secondary"]:hover {
 #MainMenu, footer, header[data-testid="stHeader"] { visibility: hidden; height: 0 !important; }
 [data-testid="stToolbar"] { display: none !important; }
 [data-testid="stStatusWidget"] { display: none !important; }
+
+/* ───── Sidebar brand block ───── */
+.sidebar-brand {
+    display: flex; align-items: center; gap: 0.65rem;
+    margin: 0 0 0.5rem 0;
+}
+.brand-mark {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: var(--accent-inv);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 700; font-size: 1rem;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+}
+.brand-stack { display: flex; flex-direction: column; line-height: 1.15; }
+.brand-title {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 700; font-size: 0.98rem;
+    color: var(--text) !important;
+    letter-spacing: -0.01em;
+}
+.brand-subtitle {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.72rem; font-weight: 500;
+    color: var(--text-muted) !important;
+    margin-top: 0.1rem;
+}
 
 /* ───── Appearance label (above theme toggle) ───── */
 .appearance-label {
@@ -1273,13 +1315,11 @@ button[kind="secondary"]:hover {
         with st.sidebar:
             st.markdown(
                 """
-<div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.25rem;">
-    <div style="width:32px; height:32px; border-radius:8px; background:var(--accent);
-                display:flex; align-items:center; justify-content:center; color:var(--accent-inv);
-                font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1rem;">M</div>
-    <div>
-        <div style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1rem; color:var(--text);">MAST</div>
-        <div style="font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--text-soft); letter-spacing:0.08em;">CONTROL · PANEL</div>
+<div class="sidebar-brand">
+    <div class="brand-mark">M</div>
+    <div class="brand-stack">
+        <div class="brand-title">MAST</div>
+        <div class="brand-subtitle">Control Panel</div>
     </div>
 </div>
 """,
