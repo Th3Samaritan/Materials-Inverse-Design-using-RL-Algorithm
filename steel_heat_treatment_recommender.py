@@ -297,8 +297,8 @@ def bootstrap_models(fwd_bytes: Optional[bytes] = None, pol_bytes: Optional[byte
 # ─────────────────────────────────────────────────────────────────────────────
 class SteelRecommenderPro:
     def __init__(self):
-        self.inject_css()
         self.initialize_state()
+        self.inject_css()
 
     def initialize_state(self):
         # Ensures session variables persist across Streamlit re-runs.
@@ -306,15 +306,12 @@ class SteelRecommenderPro:
             st.session_state.models = bootstrap_models()
         if 'results' not in st.session_state:
             st.session_state.results = None
+        if 'theme' not in st.session_state:
+            st.session_state.theme = 'Auto'  # Auto | Light | Dark
 
     def inject_css(self):
-        # Minimalist B&W theme — adapts to Streamlit light/dark with CSS variables.
-        html = """
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
-
-/* ───── Theme tokens ───── */
-:root {
+        # Minimalist B&W theme — Auto follows OS, Light/Dark force a fixed palette.
+        LIGHT_VARS = """
     --bg:        #ffffff;
     --surface:   #fafafa;
     --surface-2: #f4f4f5;
@@ -332,32 +329,45 @@ class SteelRecommenderPro:
     --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
     --shadow:    0 4px 12px rgba(0,0,0,0.06);
     --shadow-lg: 0 12px 32px rgba(0,0,0,0.08);
-    --radius:    10px;
-    --radius-sm: 6px;
-}
+"""
+        DARK_VARS = """
+    --bg:        #0a0a0a;
+    --surface:   #111111;
+    --surface-2: #161616;
+    --border:    #262626;
+    --border-strong: #3a3a3a;
+    --text:      #fafafa;
+    --text-muted:#a1a1aa;
+    --text-soft: #71717a;
+    --accent:    #fafafa;
+    --accent-inv:#0a0a0a;
+    --success:   #34d399;
+    --warning:   #fbbf24;
+    --danger:    #f87171;
+    --info:      #60a5fa;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+    --shadow:    0 4px 12px rgba(0,0,0,0.5);
+    --shadow-lg: 0 12px 32px rgba(0,0,0,0.6);
+"""
+        SHARED = "--radius: 10px; --radius-sm: 6px;"
 
-/* Dark theme — Streamlit applies these via .stApp[theme] but we cover both via media query and Streamlit's data-theme */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg:        #0a0a0a;
-        --surface:   #111111;
-        --surface-2: #161616;
-        --border:    #262626;
-        --border-strong: #3a3a3a;
-        --text:      #fafafa;
-        --text-muted:#a1a1aa;
-        --text-soft: #71717a;
-        --accent:    #fafafa;
-        --accent-inv:#0a0a0a;
-        --success:   #34d399;
-        --warning:   #fbbf24;
-        --danger:    #f87171;
-        --info:      #60a5fa;
-        --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
-        --shadow:    0 4px 12px rgba(0,0,0,0.5);
-        --shadow-lg: 0 12px 32px rgba(0,0,0,0.6);
-    }
-}
+        theme = st.session_state.get('theme', 'Auto')
+        if theme == 'Light':
+            theme_block = f":root {{ {LIGHT_VARS}{SHARED} }}"
+        elif theme == 'Dark':
+            theme_block = f":root {{ {DARK_VARS}{SHARED} }}"
+        else:  # Auto — light defaults, dark via OS media query
+            theme_block = (
+                f":root {{ {LIGHT_VARS}{SHARED} }}\n"
+                f"@media (prefers-color-scheme: dark) {{ :root {{ {DARK_VARS} }} }}"
+            )
+
+        html = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+/* ───── Theme tokens ───── */
+""" + theme_block + """
 
 /* ───── Global base ───── */
 html, body, [class*="css"], .stApp {
@@ -661,6 +671,47 @@ div.stButton > button:active { transform: translateY(0); }
     border-radius: var(--radius) !important;
 }
 
+/* ───── Theme toggle (segmented pill) ───── */
+.theme-toggle-wrap {
+    margin: 0.75rem 0 0.25rem 0;
+}
+.theme-toggle-wrap + div [role="radiogroup"] {
+    display: flex !important;
+    gap: 0.2rem !important;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.25rem !important;
+    width: 100%;
+}
+.theme-toggle-wrap + div [role="radiogroup"] > label {
+    flex: 1 1 0;
+    margin: 0 !important;
+    padding: 0.4rem 0.5rem !important;
+    border-radius: 4px !important;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    text-align: center;
+    background: transparent !important;
+    color: var(--text-muted) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.78rem !important;
+    font-weight: 500 !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    display: flex; align-items: center; justify-content: center;
+}
+.theme-toggle-wrap + div [role="radiogroup"] > label > div:first-child { display: none !important; }
+.theme-toggle-wrap + div [role="radiogroup"] > label:hover {
+    color: var(--text) !important;
+}
+.theme-toggle-wrap + div [role="radiogroup"] > label:has(input:checked) {
+    background: var(--bg) !important;
+    color: var(--text) !important;
+    box-shadow: var(--shadow-sm);
+    font-weight: 600 !important;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -866,6 +917,23 @@ div.stButton > button:active { transform: translateY(0); }
 """,
                 unsafe_allow_html=True,
             )
+
+            # Theme toggle — Auto follows OS, Light / Dark force a palette.
+            st.markdown('<div class="theme-toggle-wrap">', unsafe_allow_html=True)
+            options = ['Auto', 'Light', 'Dark']
+            choice = st.radio(
+                "Appearance",
+                options,
+                index=options.index(st.session_state.theme),
+                horizontal=True,
+                label_visibility='collapsed',
+                key='theme_radio',
+            )
+            st.markdown('</div>', unsafe_allow_html=True)
+            if choice != st.session_state.theme:
+                st.session_state.theme = choice
+                st.rerun()
+
             st.markdown("---")
 
             if st.session_state.models is not None:
