@@ -308,209 +308,631 @@ class SteelRecommenderPro:
             st.session_state.results = None
 
     def inject_css(self):
-        # Using un-indented strings prevents Streamlit's Markdown parser from turning it into a <pre><code> block
+        # Minimalist B&W theme — adapts to Streamlit light/dark with CSS variables.
         html = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
 
-/* Global Resets */
-html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
-    background-color: #030303 !important;
-    color: #FFFFFF !important;
+/* ───── Theme tokens ───── */
+:root {
+    --bg:        #ffffff;
+    --surface:   #fafafa;
+    --surface-2: #f4f4f5;
+    --border:    #e5e5e5;
+    --border-strong: #d4d4d4;
+    --text:      #0a0a0a;
+    --text-muted:#6b7280;
+    --text-soft: #9ca3af;
+    --accent:    #0a0a0a;
+    --accent-inv:#ffffff;
+    --success:   #059669;
+    --warning:   #d97706;
+    --danger:    #dc2626;
+    --info:      #2563eb;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow:    0 4px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 12px 32px rgba(0,0,0,0.08);
+    --radius:    10px;
+    --radius-sm: 6px;
 }
 
-/* Typography */
-h1, h2, h3, h4, h5, h6 { font-family: 'Space Mono', monospace !important; color: #FFFFFF !important; }
-
-/* Background Canvas */
-#ambient-canvas {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    z-index: -1; pointer-events: none; opacity: 0.12;
+/* Dark theme — Streamlit applies these via .stApp[theme] but we cover both via media query and Streamlit's data-theme */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg:        #0a0a0a;
+        --surface:   #111111;
+        --surface-2: #161616;
+        --border:    #262626;
+        --border-strong: #3a3a3a;
+        --text:      #fafafa;
+        --text-muted:#a1a1aa;
+        --text-soft: #71717a;
+        --accent:    #fafafa;
+        --accent-inv:#0a0a0a;
+        --success:   #34d399;
+        --warning:   #fbbf24;
+        --danger:    #f87171;
+        --info:      #60a5fa;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+        --shadow:    0 4px 12px rgba(0,0,0,0.5);
+        --shadow-lg: 0 12px 32px rgba(0,0,0,0.6);
+    }
 }
 
-/* Sidebar Styling */
+/* ───── Global base ───── */
+html, body, [class*="css"], .stApp {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    background-color: var(--bg) !important;
+    color: var(--text) !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.stApp { background-color: var(--bg) !important; }
+.main .block-container { padding-top: 2.5rem; padding-bottom: 3rem; max-width: 1280px; }
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', 'Inter', sans-serif !important;
+    color: var(--text) !important;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+}
+p, span, label, div { color: var(--text); }
+
+/* ───── Sidebar ───── */
 [data-testid="stSidebar"] {
-    background-color: #0a0a0a !important; border-right: 1px solid #222 !important;
+    background-color: var(--surface) !important;
+    border-right: 1px solid var(--border) !important;
+}
+[data-testid="stSidebar"] > div:first-child { padding-top: 1.5rem; }
+[data-testid="stSidebar"] hr {
+    border-color: var(--border) !important;
+    margin: 1.25rem 0 !important;
+}
+[data-testid="stSidebar"] .stMarkdown p,
+[data-testid="stSidebar"] label { color: var(--text) !important; }
+
+/* ───── Inputs ───── */
+.stNumberInput input, .stTextInput input, .stSelectbox > div > div {
+    background-color: var(--bg) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-sm) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.875rem !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+.stNumberInput input:focus, .stTextInput input:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent) !important;
+    outline: none !important;
+}
+.stNumberInput button {
+    background-color: var(--surface-2) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text) !important;
+}
+label, .stNumberInput label, .stSelectbox label, .stSlider label {
+    font-size: 0.78rem !important;
+    font-weight: 500 !important;
+    color: var(--text-muted) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
-/* Native HTML Process Cards */
-.pro-card-container {
-    display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; margin-bottom: 2rem;
+/* ───── Sliders ───── */
+.stSlider [data-baseweb="slider"] > div > div { background: var(--accent) !important; }
+.stSlider [role="slider"] {
+    background-color: var(--accent) !important;
+    border: 2px solid var(--bg) !important;
+    box-shadow: var(--shadow-sm) !important;
 }
-.pro-card {
-    background: linear-gradient(145deg, #0d0d0d, #050505);
-    border: 1px solid #333; 
-    border-left: 3px solid #FFFFFF; /* High contrast B&W design accent */
-    border-radius: 6px; padding: 1.5rem;
-    flex: 1; min-width: 220px; transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-}
-.pro-card:hover {
-    border-color: #777; transform: translateY(-3px); box-shadow: 0 8px 25px rgba(255,255,255,0.05);
-}
-.pro-card-header {
-    font-family: 'Space Mono', monospace; font-size: 1.2rem; font-weight: 700;
-    color: #FFF; text-align: center; margin-bottom: 0.3rem;
-}
-.pro-card-score {
-    text-align: center; color: #888; font-size: 0.8rem; font-family: 'Space Mono', monospace;
-    border-bottom: 1px dashed #333; padding-bottom: 0.8rem; margin-bottom: 1rem;
-}
-.pro-card-row { margin: 0.5rem 0; font-family: 'Space Mono', monospace; font-size: 0.9rem; }
-.pro-label { color: #888; width: 85px; display: inline-block; font-weight: 700; }
-.pro-value { color: #FFFFFF; font-weight: 600; }
 
-/* Unified Buttons */
-div.stButton > button {
-    background-color: #FFFFFF !important; color: #000000 !important;
-    border: none !important; font-family: 'Space Mono', monospace;
-    font-weight: 700; border-radius: 4px !important; padding: 0.6rem 2rem !important;
+/* ───── Buttons ───── */
+div.stButton > button, div.stDownloadButton > button {
+    background-color: var(--accent) !important;
+    color: var(--accent-inv) !important;
+    border: 1px solid var(--accent) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    letter-spacing: 0.01em !important;
+    border-radius: var(--radius-sm) !important;
+    padding: 0.65rem 1.5rem !important;
+    transition: all 0.18s ease !important;
+    box-shadow: var(--shadow-sm) !important;
+    width: 100%;
+}
+div.stButton > button:hover, div.stDownloadButton > button:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow) !important;
+    opacity: 0.92;
+}
+div.stButton > button:active { transform: translateY(0); }
+
+/* ───── Tabs ───── */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 0.25rem;
+    background: var(--surface);
+    padding: 0.35rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+.stTabs [data-baseweb="tab"] {
+    background: transparent !important;
+    color: var(--text-muted) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+    border-radius: var(--radius-sm) !important;
+    padding: 0.55rem 1.1rem !important;
+    border: none !important;
     transition: all 0.2s ease !important;
 }
-div.stButton > button:hover {
-    background-color: #cccccc !important; box-shadow: 0 0 15px rgba(255,255,255,0.3);
+.stTabs [aria-selected="true"] {
+    background: var(--bg) !important;
+    color: var(--text) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+.stTabs [data-baseweb="tab-highlight"] { display: none !important; }
+
+/* ───── Cards ───── */
+.mast-header {
+    display: flex; flex-direction: column; gap: 0.35rem;
+    padding-bottom: 1.5rem; margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+}
+.mast-header .eyebrow {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+    color: var(--text-soft); letter-spacing: 0.15em; text-transform: uppercase;
+}
+.mast-header h1 {
+    font-size: 2.4rem; margin: 0; font-weight: 700; letter-spacing: -0.035em;
+}
+.mast-header .subtitle {
+    font-size: 0.95rem; color: var(--text-muted); margin: 0;
+}
+
+.section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.78rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin: 2rem 0 1rem 0;
+    display: flex; align-items: center; gap: 0.6rem;
+}
+.section-title::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+.pro-card-container {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem; margin: 1rem 0 2rem 0;
+}
+.pro-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.35rem;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+.pro-card::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%;
+    background: var(--accent); opacity: 0.9;
+}
+.pro-card:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+.pro-card-header {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.72rem; font-weight: 600;
+    color: var(--text-muted); letter-spacing: 0.12em; text-transform: uppercase;
+    margin-bottom: 0.35rem;
+}
+.pro-card-rank {
+    font-family: 'Space Grotesk', sans-serif; font-size: 1.65rem; font-weight: 700;
+    color: var(--text); line-height: 1; margin-bottom: 0.15rem;
+}
+.pro-card-score {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    color: var(--text-soft); padding-bottom: 0.9rem; margin-bottom: 0.9rem;
+    border-bottom: 1px solid var(--border);
+}
+.pro-card-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin: 0.45rem 0; font-family: 'JetBrains Mono', monospace; font-size: 0.83rem;
+}
+.pro-label { color: var(--text-muted); font-weight: 500; }
+.pro-value { color: var(--text); font-weight: 600; }
+.pro-value.accent { color: var(--info); }
+
+/* Metric card (forward predictor) */
+.metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 0.85rem;
+    transition: border-color 0.2s ease;
+}
+.metric-card:hover { border-color: var(--border-strong); }
+.metric-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+}
+.metric-value {
+    font-family: 'Space Grotesk', sans-serif; font-size: 1.55rem; font-weight: 700;
+    color: var(--text); line-height: 1.1;
+}
+.metric-value .unit { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; margin-left: 0.25rem; }
+.metric-std {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+    color: var(--text-soft); margin-top: 0.4rem;
+}
+
+/* Status banners */
+.status-banner {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.85rem 1rem; border-radius: var(--radius-sm);
+    margin-bottom: 1.25rem; border: 1px solid var(--border);
+    background: var(--surface);
+}
+.status-banner.online { border-left: 3px solid var(--success); }
+.status-banner.offline { border-left: 3px solid var(--danger); }
+.status-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.status-dot.online { background: var(--success); box-shadow: 0 0 0 4px color-mix(in srgb, var(--success) 18%, transparent); }
+.status-dot.offline { background: var(--danger); box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger) 18%, transparent); }
+.status-text {
+    display: flex; flex-direction: column;
+}
+.status-text .label {
+    font-size: 0.68rem; color: var(--text-soft);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    font-family: 'JetBrains Mono', monospace;
+}
+.status-text .value {
+    font-size: 0.9rem; color: var(--text); font-weight: 600;
+}
+
+/* Fe balance pill */
+.fe-pill {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.75rem 1rem; border-radius: var(--radius-sm);
+    background: var(--surface-2); border: 1px solid var(--border);
+    margin-top: 1rem;
+}
+.fe-pill .fe-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+    color: var(--text-muted);
+}
+.fe-pill .fe-value {
+    font-family: 'JetBrains Mono', monospace; font-size: 1.05rem;
+    font-weight: 600;
+}
+
+/* Ac3 info chip */
+.ac3-chip {
+    display: inline-flex; gap: 0.5rem; align-items: baseline;
+    padding: 0.55rem 0.9rem; border-radius: var(--radius-sm);
+    background: var(--surface); border: 1px solid var(--border);
+    margin: 1rem 0 1.5rem 0;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+    color: var(--text-muted);
+}
+.ac3-chip strong { color: var(--text); font-weight: 600; }
+.ac3-chip .divider { color: var(--text-soft); }
+
+/* Dataframe styling */
+.stDataFrame, [data-testid="stDataFrame"] {
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    overflow: hidden;
+}
+
+/* Alerts */
+.stAlert {
+    border-radius: var(--radius) !important;
+    border: 1px solid var(--border) !important;
+    background: var(--surface) !important;
+}
+
+/* Plotly figure container */
+.js-plotly-plot, .plot-container {
+    background: var(--surface) !important;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.5rem;
+}
+
+/* Hide Streamlit chrome */
+#MainMenu, footer, header[data-testid="stHeader"] { visibility: hidden; }
+
+/* File uploader */
+[data-testid="stFileUploader"] section {
+    background: var(--surface) !important;
+    border: 1px dashed var(--border-strong) !important;
+    border-radius: var(--radius) !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-soft); }
+
+/* ───── Responsive · Tablet (≤ 992px) ───── */
+@media (max-width: 992px) {
+    .main .block-container {
+        padding-top: 1.5rem !important;
+        padding-left: 1.25rem !important;
+        padding-right: 1.25rem !important;
+    }
+    .mast-header h1 { font-size: 1.95rem; }
+    .mast-header .subtitle { font-size: 0.88rem; }
+    .pro-card-container { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.85rem; }
+    .pro-card { padding: 1.1rem; }
+}
+
+/* ───── Responsive · Mobile (≤ 640px) ───── */
+@media (max-width: 640px) {
+    .main .block-container {
+        padding-top: 1rem !important;
+        padding-left: 0.9rem !important;
+        padding-right: 0.9rem !important;
+        padding-bottom: 2rem !important;
+    }
+
+    /* Header scales */
+    .mast-header {
+        padding-bottom: 1rem;
+        margin-bottom: 1.25rem;
+    }
+    .mast-header .eyebrow { font-size: 0.65rem; letter-spacing: 0.12em; }
+    .mast-header h1 { font-size: 1.55rem; letter-spacing: -0.025em; }
+    .mast-header .subtitle { font-size: 0.82rem; }
+
+    /* Section titles compact */
+    .section-title {
+        font-size: 0.7rem; letter-spacing: 0.1em;
+        margin: 1.5rem 0 0.75rem 0;
+        gap: 0.4rem;
+    }
+
+    /* Force single column for st.columns on mobile */
+    [data-testid="stHorizontalBlock"] {
+        flex-direction: column !important;
+        gap: 0 !important;
+    }
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
+    [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Process cards stack */
+    .pro-card-container {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        margin: 0.75rem 0 1.5rem 0;
+    }
+    .pro-card { padding: 1rem 1.1rem; }
+    .pro-card-rank { font-size: 1.45rem; }
+    .pro-card-row { font-size: 0.8rem; margin: 0.4rem 0; }
+
+    /* Metric cards */
+    .metric-card { padding: 0.9rem 1rem; margin-bottom: 0.65rem; }
+    .metric-value { font-size: 1.35rem; }
+    .metric-value .unit { font-size: 0.78rem; }
+
+    /* Buttons — full width, larger touch target */
+    div.stButton > button, div.stDownloadButton > button {
+        padding: 0.85rem 1.25rem !important;
+        font-size: 0.9rem !important;
+        min-height: 44px;
+    }
+
+    /* Inputs — bigger tap targets, prevent iOS zoom-on-focus */
+    .stNumberInput input, .stTextInput input, .stSelectbox > div > div {
+        font-size: 16px !important;
+        min-height: 42px;
+    }
+    .stNumberInput button { min-width: 36px; min-height: 36px; }
+
+    /* Tabs — scroll horizontally if needed, slightly tighter */
+    .stTabs [data-baseweb="tab-list"] {
+        padding: 0.3rem;
+        gap: 0.2rem;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .stTabs [data-baseweb="tab-list"]::-webkit-scrollbar { display: none; }
+    .stTabs [data-baseweb="tab"] {
+        padding: 0.5rem 0.85rem !important;
+        font-size: 0.82rem !important;
+        white-space: nowrap;
+    }
+
+    /* Ac3 chip wraps gracefully */
+    .ac3-chip {
+        display: flex; flex-wrap: wrap; gap: 0.35rem;
+        font-size: 0.78rem; padding: 0.55rem 0.75rem;
+        margin: 0.75rem 0 1.25rem 0;
+    }
+
+    /* Status banner */
+    .status-banner { padding: 0.75rem 0.85rem; gap: 0.65rem; }
+    .status-text .label { font-size: 0.62rem; }
+    .status-text .value { font-size: 0.85rem; }
+
+    /* Fe pill */
+    .fe-pill { padding: 0.65rem 0.85rem; }
+    .fe-pill .fe-value { font-size: 0.95rem; }
+
+    /* Sidebar trim on mobile drawer */
+    [data-testid="stSidebar"] > div:first-child { padding: 1rem 0.85rem; }
+
+    /* Dataframe horizontal scroll */
+    [data-testid="stDataFrame"] { font-size: 0.78rem; }
+
+    /* Plotly */
+    .js-plotly-plot, .plot-container { padding: 0.25rem; }
+}
+
+/* ───── Responsive · Small phones (≤ 380px) ───── */
+@media (max-width: 380px) {
+    .mast-header h1 { font-size: 1.35rem; }
+    .pro-card-rank { font-size: 1.25rem; }
+    .metric-value { font-size: 1.2rem; }
+    div.stButton > button { font-size: 0.85rem !important; padding: 0.8rem 1rem !important; }
 }
 </style>
-
-<!-- Ambient Neural Network Canvas -->
-<canvas id="ambient-canvas"></canvas>
-<script>
-const canvas = document.getElementById('ambient-canvas');
-const ctx = canvas.getContext('2d');
-let width = canvas.width = window.innerWidth;
-let height = canvas.height = window.innerHeight;
-const numPoints = 75; const points = [];
-for (let i = 0; i < numPoints; i++) {
-    points.push({ x: Math.random() * width, y: Math.random() * height,
-                  vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4,
-                  radius: Math.random() * 1.5 + 1 });
-}
-window.addEventListener('resize', () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; });
-function animate() {
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    ctx.lineWidth = 0.8;
-    for (let i = 0; i < numPoints; i++) {
-        const p = points[i]; p.x += p.vx; p.y += p.vy;
-        if (p.x < 0 || p.x > width) p.vx *= -1; if (p.y < 0 || p.y > height) p.vy *= -1;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
-        for (let j = i + 1; j < numPoints; j++) {
-            const p2 = points[j]; const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
-            if (dist < 160) {
-                ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 * (1 - dist / 160)})`;
-                ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
-            }
-        }
-    }
-    requestAnimationFrame(animate);
-}
-animate();
-</script>
 """
         st.markdown(html, unsafe_allow_html=True)
 
 
     def create_plotly_comparison(self, targets: Dict[str, float], results: List[Dict]) -> go.Figure:
-        # Generates a highly professional, interactive Plotly graph.
+        # Theme-neutral palette using Plotly's `template`-friendly transparent backgrounds.
+        # Streamlit auto-injects font color via theme; we keep accents minimal.
         fig = go.Figure()
         props = PROPERTY_NAMES
-        
-        # Target Line (Hollow bars with vivid accent for high visibility)
+
+        # Detect Streamlit theme via env (Streamlit injects a CSS var; default to mid-tone grid).
+        grid_color = 'rgba(128,128,128,0.18)'
+        axis_color = 'rgba(128,128,128,0.45)'
+        text_color = 'rgba(128,128,128,0.95)'
+
+        # Target — outlined bars, info-blue accent (single restrained color).
         t_vals = [targets[p] for p in props]
         fig.add_trace(go.Bar(
-            x=[f"{p}<br>({PROP_UNITS[p]})" for p in props], y=t_vals, name='Target Goal',
-            marker=dict(color='rgba(0,0,0,0)', line=dict(color='#00E5FF', width=2)), # Electric Cyan Accent
-            hovertemplate='%{x}: %{y}<extra></extra>'
+            x=[f"{p}<br><span style='font-size:10px;opacity:0.6'>{PROP_UNITS[p]}</span>" for p in props],
+            y=t_vals, name='Target',
+            marker=dict(color='rgba(0,0,0,0)', line=dict(color='#2563eb', width=2)),
+            hovertemplate='<b>Target</b><br>%{x}: %{y}<extra></extra>'
         ))
 
-        # Vibrant but professional 'Steel & Heat' palette to distinguish ranks clearly
-        # White (Rank 1), Steel Blue (Rank 2), Teal (Rank 3), Gold (Rank 4), Coral (Rank 5)
-        shades = ['#FFFFFF', '#5D9CEC', '#48CFAD', '#FFCE54', '#FC6E51']
+        # Monochrome ramp for predictions — distinct without rainbow noise.
+        ramp = ['#0a0a0a', '#404040', '#737373', '#a3a3a3', '#d4d4d4']
         for i, r in enumerate(results):
             pred = [r['pred'][p] for p in props]
-            err = [r['std'][p] for p in props]
+            err  = [r['std'][p] for p in props]
             fig.add_trace(go.Bar(
-                x=[f"{p}<br>({PROP_UNITS[p]})" for p in props], y=pred,
-                name=f"Rank #{r['rank']} (Score: {r['score']:.1f})",
-                marker_color=shades[i % len(shades)],
-                error_y=dict(type='data', array=err, visible=True, color='#E6E6E6', thickness=1.5),
-                hovertemplate='%{x}: %{y:.1f} ± %{error_y.array:.1f}<extra></extra>'
+                x=[f"{p}<br><span style='font-size:10px;opacity:0.6'>{PROP_UNITS[p]}</span>" for p in props],
+                y=pred, name=f"Rank {r['rank']}  ·  {r['score']:.2f}",
+                marker=dict(color=ramp[i % len(ramp)],
+                            line=dict(color='rgba(128,128,128,0.3)', width=0.5)),
+                error_y=dict(type='data', array=err, visible=True,
+                             color=axis_color, thickness=1.2, width=4),
+                hovertemplate=f"<b>Rank {r['rank']}</b><br>%{{x}}: %{{y:.1f}} ± %{{error_y.array:.1f}}<extra></extra>"
             ))
 
-        # Removed the internal Plotly `title` dictionary to prevent overlap with the Streamlit Markdown header.
         fig.update_layout(
-            barmode='group', plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='#E6E6E6', family='Space Mono, monospace', size=11),
-            xaxis=dict(showgrid=False, linecolor='#444'),
-            yaxis=dict(showgrid=True, gridcolor='#222', linecolor='#444', title='Metric Value'),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-            margin=dict(l=20, r=20, t=20, b=20) # Tightened top margin significantly
+            barmode='group', bargap=0.25, bargroupgap=0.08,
+            plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(color=text_color, family='Inter, sans-serif', size=12),
+            xaxis=dict(showgrid=False, linecolor=axis_color, tickfont=dict(size=11)),
+            yaxis=dict(showgrid=True, gridcolor=grid_color, linecolor=axis_color,
+                       title=dict(text='Value', font=dict(size=11)), zeroline=False),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
+                        font=dict(size=11), bgcolor='rgba(0,0,0,0)'),
+            margin=dict(l=10, r=10, t=40, b=20),
+            hoverlabel=dict(font_family='JetBrains Mono', font_size=12),
         )
         return fig
 
 
     def render_sidebar(self):
-        # Constructs the sidebar for model injection and chemical constraints.
         with st.sidebar:
-            st.markdown("### `SYSTEM COMPONENT` ⚙️")
+            st.markdown(
+                """
+<div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.25rem;">
+    <div style="width:32px; height:32px; border-radius:8px; background:var(--accent);
+                display:flex; align-items:center; justify-content:center; color:var(--accent-inv);
+                font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1rem;">M</div>
+    <div>
+        <div style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1rem; color:var(--text);">MAST</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--text-soft); letter-spacing:0.08em;">CONTROL · PANEL</div>
+    </div>
+</div>
+""",
+                unsafe_allow_html=True,
+            )
             st.markdown("---")
-            
-            # Status Banner
+
             if st.session_state.models is not None:
-                html_online = """
-<div style="border: 1px solid #2ECC71; padding: 0.8rem; background-color: #051005; border-radius: 4px; margin-bottom:1rem;">
-    <p style="margin:0; font-size:0.75rem; color:#888; font-family:'Space Mono';">ENGINE STATUS</p>
-    <p style="margin:0; font-size:0.95rem; font-weight:bold; color:#2ECC71; font-family:'Space Mono';">✓ ONLINE & READY</p>
+                st.markdown(
+                    """
+<div class="status-banner online">
+    <div class="status-dot online"></div>
+    <div class="status-text">
+        <span class="label">Engine Status</span>
+        <span class="value">Online · Ready</span>
+    </div>
 </div>
-"""
-                st.markdown(html_online, unsafe_allow_html=True)
+""",
+                    unsafe_allow_html=True,
+                )
             else:
-                html_offline = """
-<div style="border: 1px dashed #E74C3C; padding: 0.8rem; background-color: #100505; border-radius: 4px; margin-bottom:1rem;">
-    <p style="margin:0; font-size:0.75rem; color:#888; font-family:'Space Mono';">ENGINE STATUS</p>
-    <p style="margin:0; font-size:0.95rem; font-weight:bold; color:#E74C3C; font-family:'Space Mono';">✗ OFFLINE</p>
-    <p style="margin:0.2rem 0 0 0; font-size:0.75rem; color:#aaa;">Upload model weights below.</p>
+                st.markdown(
+                    """
+<div class="status-banner offline">
+    <div class="status-dot offline"></div>
+    <div class="status-text">
+        <span class="label">Engine Status</span>
+        <span class="value">Offline — Upload weights</span>
+    </div>
 </div>
-"""
-                st.markdown(html_offline, unsafe_allow_html=True)
-                
+""",
+                    unsafe_allow_html=True,
+                )
                 fwd_file = st.file_uploader("Forward Model (.pt)", type=['pt'])
                 pol_file = st.file_uploader("Policy Model (.pt)", type=['pt'])
                 if fwd_file and pol_file:
                     st.session_state.models = bootstrap_models(fwd_file.read(), pol_file.read())
                     st.rerun()
 
-            st.markdown("**STEEL CHEMICAL COMPOSITION**")
+            st.markdown('<div class="section-title">Composition</div>', unsafe_allow_html=True)
             preset = st.selectbox("Alloy Preset", list(STEEL_PRESETS.keys()))
             preset_vals = STEEL_PRESETS[preset]
 
             self.comp = {}
             for elem in ELEMENT_NAMES[:-1]:
                 lo, hi = COMP_RANGES[elem]
-                default = float(preset_vals[elem]) if preset_vals else (lo+hi)/2
+                default = float(preset_vals[elem]) if preset_vals else (lo + hi) / 2
                 self.comp[elem] = st.number_input(
-                    f"{elem} (wt%)", min_value=float(lo), max_value=float(hi),
+                    f"{elem}  (wt%)", min_value=float(lo), max_value=float(hi),
                     value=float(np.clip(default, lo, hi)),
-                    step=0.0001 if elem == 'B' else 0.01, format="%.4f" if elem=='B' else "%.3f"
+                    step=0.0001 if elem == 'B' else 0.01,
+                    format="%.4f" if elem == 'B' else "%.3f",
                 )
-                
+
             fe_calc = 100.0 - sum(self.comp.values())
             self.comp['Fe'] = fe_calc
-            
-            # Iron safety indicator
-            fe_color = '#2ECC71' if 60 <= fe_calc <= 99.9 else '#E74C3C'
-            html_fe = f"""
-<div style="padding: 0.5rem; background: #111; border: 1px solid #333; margin-top: 1rem;">
-    <span style="font-family:'Space Mono'; font-size:0.8rem; color:#aaa;">Fe Balance:</span><br>
-    <span style="font-family:'Space Mono'; font-size:1.1rem; font-weight:bold; color:{fe_color}">{fe_calc:.3f}%</span>
-</div>
-"""
-            st.markdown(html_fe, unsafe_allow_html=True)
 
-            st.markdown("---")
+            fe_ok = 60 <= fe_calc <= 99.9
+            fe_color = "var(--success)" if fe_ok else "var(--danger)"
+            st.markdown(
+                f"""
+<div class="fe-pill">
+    <span class="fe-label">Fe Balance</span>
+    <span class="fe-value" style="color:{fe_color};">{fe_calc:.3f}%</span>
+</div>
+""",
+                unsafe_allow_html=True,
+            )
+
+            st.markdown('<div class="section-title">Sampling</div>', unsafe_allow_html=True)
             self.n_cand = st.slider("Monte Carlo Candidates", 100, 1000, 300, 50)
-            self.top_k  = st.slider("Display Candidates Count", 1, 10, 4)
+            self.top_k  = st.slider("Top-K Display", 1, 10, 4)
 
 
     def execute_inference(self, targets: Dict[str, float]):
@@ -557,78 +979,84 @@ animate();
 
 
     def render_native_process_cards(self):
-        # Builds HTML cards avoiding Markdown parsing issues by omitting indentation.
-        if not st.session_state.results: return
-        
-        html = '<div class="pro-card-container">\n'
+        if not st.session_state.results:
+            return
+
+        html = '<div class="pro-card-container">'
         for r in st.session_state.results:
             html += f"""<div class="pro-card">
-    <div class="pro-card-header">RANK #{r['rank']}</div>
-    <div class="pro-card-score">Score: {r['score']:.2f}</div>
-    <div class="pro-card-row"><span class="pro-label">T_aus:</span> <span class="pro-value">{r['T_aus']} °C</span></div>
-    <div class="pro-card-row"><span class="pro-label">t_aus:</span> <span class="pro-value">{r['t_aus']} hrs</span></div>
-    <div class="pro-card-row"><span class="pro-label">Quench:</span> <span class="pro-value" style="color: #FFF;">{r['quench']}</span></div>
-    <div class="pro-card-row"><span class="pro-label">T_temp:</span> <span class="pro-value">{r['T_temper']} °C</span></div>
-    <div class="pro-card-row"><span class="pro-label">t_temp:</span> <span class="pro-value">{r['t_temper']} hrs</span></div>
-</div>\n"""
+    <div class="pro-card-header">Candidate</div>
+    <div class="pro-card-rank">#{r['rank']}</div>
+    <div class="pro-card-score">score · {r['score']:.3f}</div>
+    <div class="pro-card-row"><span class="pro-label">Austenitize</span><span class="pro-value">{r['T_aus']} °C</span></div>
+    <div class="pro-card-row"><span class="pro-label">Soak</span><span class="pro-value">{r['t_aus']} h</span></div>
+    <div class="pro-card-row"><span class="pro-label">Quench</span><span class="pro-value accent">{r['quench']}</span></div>
+    <div class="pro-card-row"><span class="pro-label">Temper</span><span class="pro-value">{r['T_temper']} °C</span></div>
+    <div class="pro-card-row"><span class="pro-label">Hold</span><span class="pro-value">{r['t_temper']} h</span></div>
+</div>"""
         html += '</div>'
         st.markdown(html, unsafe_allow_html=True)
 
 
     def render_main(self):
-        # Constructs the primary user interface tabs and triggers.
-        html_title = """
-<div style="border-bottom: 1px solid #333; padding-bottom: 1rem; margin-bottom: 2rem; margin-top: 1rem;">
-    <h1 style="font-size: 2.5rem; margin:0; letter-spacing:-1px;">MAST · Inverse Design</h1>
-    <h3 style="font-size: 1rem; color: #888; margin:0; font-weight: normal;">Production Grade Policy Generator & Forward Evaluator</h3>
+        st.markdown(
+            """
+<div class="mast-header">
+    <span class="eyebrow">MAST · Inverse Design Suite</span>
+    <h1>Steel Heat-Treatment Recommender</h1>
+    <p class="subtitle">Reinforcement-learning policy generator with forward-ensemble evaluation.</p>
 </div>
-"""
-        st.markdown(html_title, unsafe_allow_html=True)
+""",
+            unsafe_allow_html=True,
+        )
 
-        tab1, tab2 = st.tabs(["🎯 INVERSE DESIGN WORKSPACE", "🔬 FORWARD PREDICTOR"])
+        tab1, tab2 = st.tabs(["Inverse Design", "Forward Predictor"])
 
         with tab1:
             if st.session_state.models is None:
-                st.warning("Please upload or place model weights (`forward_model.pt` & `policy.pt`) to initialize.")
+                st.warning("Upload or place model weights (`forward_model.pt` & `policy.pt`) to initialize.")
                 return
 
-            st.markdown("#### TARGET MECHANICAL PROPERTIES")
+            st.markdown('<div class="section-title">Target Mechanical Properties</div>', unsafe_allow_html=True)
             cols = st.columns(3)
             targets = {}
             for i, prop in enumerate(PROPERTY_NAMES):
                 lo, hi, default = PROP_RANGES[prop]
                 with cols[i % 3]:
                     targets[prop] = st.number_input(
-                        f"{prop} ({PROP_UNITS[prop]})",
+                        f"{prop}  ({PROP_UNITS[prop]})",
                         min_value=float(lo), max_value=float(hi), value=float(default),
-                        step=1.0 if lo > 5 else 0.1
+                        step=1.0 if lo > 5 else 0.1,
                     )
 
             ac3_est = compute_ac3_np(self.comp['C'], self.comp['Mn'], self.comp['Si'], self.comp['Ni'],
                                      self.comp['Cr'], self.comp['Mo'], self.comp['V'], self.comp['Cu'])
-            
-            html_ac3 = f"""
-<div style="font-family:'Space Mono'; font-size:0.85rem; color:#aaa; margin: 1.5rem 0;">
-    Calculated Ac3 Point: <strong style="color:#FFF;">{ac3_est:.1f} °C</strong> 
-    (Bounds: {ac3_est+30:.0f}°C – {ac3_est+150:.0f}°C)
+            st.markdown(
+                f"""
+<div class="ac3-chip">
+    Ac<sub>3</sub> estimate <strong>{ac3_est:.1f} °C</strong>
+    <span class="divider">·</span>
+    austenitize window <strong>{ac3_est+30:.0f} – {ac3_est+150:.0f} °C</strong>
 </div>
-"""
-            st.markdown(html_ac3, unsafe_allow_html=True)
+""",
+                unsafe_allow_html=True,
+            )
 
-            if st.button("SYNTHESIZE OPTIMAL PROCESS (RUN POLICY)"):
-                with st.spinner("Executing Deep RL Policy Gradient..."):
-                    self.execute_inference(targets)
+            run_col, _ = st.columns([1, 2])
+            with run_col:
+                if st.button("Synthesize Optimal Process"):
+                    with st.spinner("Running policy rollouts…"):
+                        self.execute_inference(targets)
 
             if st.session_state.results:
-                st.markdown("---")
-                st.markdown("#### THEORETICAL PROCESS PRESCRIPTIONS")
+                st.markdown('<div class="section-title">Process Prescriptions</div>', unsafe_allow_html=True)
                 self.render_native_process_cards()
 
-                st.markdown("#### METRIC COMPARISON ANALYSIS")
+                st.markdown('<div class="section-title">Predicted vs Target</div>', unsafe_allow_html=True)
                 fig = self.create_plotly_comparison(targets, st.session_state.results)
                 st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
-                # High level detail table
+                st.markdown('<div class="section-title">Detail Breakdown</div>', unsafe_allow_html=True)
                 rows = []
                 for r in st.session_state.results:
                     row = {'Rank': r['rank'], 'Score': f"{r['score']:.2f}",
@@ -642,41 +1070,48 @@ animate();
             if st.session_state.models is None:
                 st.warning("Models offline. Cannot perform simulation.")
                 return
-                
-            st.markdown("#### SIMULATION PARAMETERS")
+
+            st.markdown('<div class="section-title">Simulation Parameters</div>', unsafe_allow_html=True)
             c1, c2, c3 = st.columns(3)
             with c1:
                 t_aus_f = st.number_input("Austenitize Temp (°C)", 750., 1100., 870.)
-                t_aus_t = st.number_input("Soak Time (hrs)", 0.5, 4.0, 1.0)
+                t_aus_t = st.number_input("Soak Time (h)", 0.5, 4.0, 1.0)
             with c2:
-                q_f = st.selectbox("Quench Medium", ['Water','Oil','Air','Polymer'])
-                q_i = {'Water':0,'Oil':1,'Air':2,'Polymer':3}[q_f]
+                q_f = st.selectbox("Quench Medium", ['Water', 'Oil', 'Air', 'Polymer'])
+                q_i = {'Water': 0, 'Oil': 1, 'Air': 2, 'Polymer': 3}[q_f]
             with c3:
                 t_tmp_f = st.number_input("Temper Temp (°C)", 150., 700., 450.)
-                t_tmp_t = st.number_input("Temper Time (hrs)", 0.5, 8.0, 2.0)
+                t_tmp_t = st.number_input("Temper Time (h)", 0.5, 8.0, 2.0)
 
-            if st.button("RUN FORWARD SIMULATION"):
+            run_col, _ = st.columns([1, 2])
+            with run_col:
+                run_sim = st.button("Run Forward Simulation")
+
+            if run_sim:
                 fwd, _, _, _, device = st.session_state.models
                 c_arr = np.array([self.comp[e] for e in ELEMENT_NAMES], dtype=np.float32)
                 p_arr = np.array([t_aus_f, t_aus_t, q_i, t_tmp_f, t_tmp_t], dtype=np.float32)
-                
+
                 with torch.no_grad():
                     p_hat, var = fwd(torch.tensor(c_arr).unsqueeze(0), torch.tensor(p_arr).unsqueeze(0))
-                
+
                 pred, std = p_hat[0].numpy(), var[0].sqrt().numpy()
-                st.markdown("---")
-                
+                st.markdown('<div class="section-title">Predicted Properties</div>', unsafe_allow_html=True)
+
                 cols = st.columns(3)
                 for i, prop in enumerate(PROPERTY_NAMES):
+                    unit = PROP_UNITS[prop]
                     with cols[i % 3]:
-                        html_metric = f"""
-<div style="background:#0a0a0a; border:1px solid #333; padding:1rem; border-radius:4px; margin-bottom:1rem;">
-    <div style="font-family:'Space Mono'; color:#888; font-size:0.8rem;">{prop}</div>
-    <div style="font-family:'Space Mono'; color:#FFF; font-size:1.5rem; font-weight:bold;">{pred[i]:.1f} <span style="font-size:1rem; color:#aaa;">{PROP_UNITS[prop]}</span></div>
-    <div style="font-family:'Space Mono'; color:#555; font-size:0.75rem;">± {std[i]:.1f} uncertainty</div>
+                        st.markdown(
+                            f"""
+<div class="metric-card">
+    <div class="metric-label">{prop}</div>
+    <div class="metric-value">{pred[i]:.1f}<span class="unit">{unit}</span></div>
+    <div class="metric-std">± {std[i]:.2f} uncertainty</div>
 </div>
-"""
-                        st.markdown(html_metric, unsafe_allow_html=True)
+""",
+                            unsafe_allow_html=True,
+                        )
 
 
     def run(self):
