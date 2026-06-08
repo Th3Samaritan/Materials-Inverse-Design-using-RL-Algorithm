@@ -356,7 +356,26 @@ class SteelRecommenderPro:
     --shadow-lg: 0 12px 32px rgba(0,0,0,0.6);
     color-scheme: dark;
 """
+        # Also sync Streamlit's own theme variables so its internal components match.
+        LIGHT_ST = """
+    --primary-color: #1c1917;
+    --background-color: #fafaf9;
+    --secondary-background-color: #f5f5f4;
+    --text-color: #1c1917;
+    --default-text-color: #1c1917;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+"""
+        DARK_ST = """
+    --primary-color: #fafaf9;
+    --background-color: #0c0c0d;
+    --secondary-background-color: #1f1f22;
+    --text-color: #fafaf9;
+    --default-text-color: #fafaf9;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+"""
         SHARED = "--radius: 10px; --radius-sm: 6px;"
+        LIGHT_VARS = LIGHT_VARS + LIGHT_ST
+        DARK_VARS = DARK_VARS + DARK_ST
 
         theme = st.session_state.get('theme', 'Auto')
         if theme == 'Light':
@@ -432,6 +451,84 @@ section[data-testid="stSidebar"],
 [data-testid="collapsedControl"] {
     color: var(--text) !important;
     background: var(--surface) !important;
+}
+
+/* ── Sidebar text lockdown — force every text node to Inter + --text ── */
+[data-testid="stSidebar"] *:not(svg):not(path):not(circle):not(line):not(input) {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+[data-testid="stSidebar"] input,
+[data-testid="stSidebar"] .stNumberInput input,
+[data-testid="stSidebar"] .stTextInput input {
+    font-family: 'JetBrains Mono', 'Menlo', monospace !important;
+}
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] span,
+[data-testid="stSidebar"] div,
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] li,
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"],
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] *,
+[data-testid="stSidebar"] [data-baseweb] {
+    color: var(--text) !important;
+}
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"],
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] *,
+[data-testid="stSidebar"] label > div:first-child,
+[data-testid="stSidebar"] label > div:first-child * {
+    color: var(--text-muted) !important;
+    font-size: 0.74rem !important;
+    font-weight: 500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    line-height: 1.4 !important;
+}
+[data-testid="stSidebar"] .stNumberInput input,
+[data-testid="stSidebar"] .stTextInput input,
+[data-testid="stSidebar"] [data-baseweb="select"] *,
+[data-testid="stSidebar"] [data-baseweb="select"] [role="combobox"] {
+    color: var(--text) !important;
+    font-size: 0.875rem !important;
+}
+[data-testid="stSidebar"] .stNumberInput input,
+[data-testid="stSidebar"] .stTextInput input {
+    background-color: var(--bg) !important;
+    border-color: var(--border) !important;
+}
+[data-testid="stSidebar"] .stNumberInput [data-baseweb="input"],
+[data-testid="stSidebar"] .stNumberInput [data-baseweb="input"] > div {
+    background-color: var(--bg) !important;
+}
+[data-testid="stSidebar"] [data-baseweb="select"] > div {
+    background-color: var(--bg) !important;
+    border-color: var(--border) !important;
+}
+[data-testid="stSidebar"] .stNumberInput button {
+    background-color: var(--surface-2) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+}
+[data-testid="stSidebar"] .stNumberInput button:hover {
+    background-color: var(--surface-3) !important;
+}
+[data-testid="stSidebar"] .stNumberInput button svg,
+[data-testid="stSidebar"] [data-baseweb="select"] svg {
+    color: var(--text-muted) !important;
+    fill: var(--text-muted) !important;
+}
+/* Slider numeric labels */
+[data-testid="stSidebar"] [data-testid="stTickBarMin"],
+[data-testid="stSidebar"] [data-testid="stTickBarMax"],
+[data-testid="stSidebar"] [data-testid="stThumbValue"] {
+    color: var(--text-muted) !important;
+    background: transparent !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.72rem !important;
+    font-weight: 500 !important;
+}
+[data-testid="stSidebar"] [data-testid="stThumbValue"] {
+    color: var(--text) !important;
+    font-weight: 600 !important;
 }
 
 /* ───── Inputs ───── */
