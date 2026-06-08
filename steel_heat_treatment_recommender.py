@@ -888,27 +888,43 @@ button[kind="secondary"]:hover {
 [data-testid="stToolbar"] { display: none !important; }
 [data-testid="stStatusWidget"] { display: none !important; }
 
-/* ───── Theme toggle (segmented pill) ───── */
-.theme-toggle-wrap { margin: 0.85rem 0 0.5rem 0; }
-.theme-toggle-wrap + div [role="radiogroup"],
-[data-testid="stSidebar"] [data-testid="stRadio"]:has(+ * .theme-toggle-end) [role="radiogroup"] {
+/* ───── Appearance label (above theme toggle) ───── */
+.appearance-label {
+    display: flex; align-items: center; gap: 0.45rem;
+    margin: 0.85rem 0 0.45rem 0;
+    color: var(--text-muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.appearance-label svg { opacity: 0.85; }
+
+/* ───── Theme toggle — segmented pill ───── */
+/* Targets the horizontal radio in the sidebar (Streamlit sets aria-orientation). */
+[data-testid="stSidebar"] [role="radiogroup"][aria-orientation="horizontal"],
+[data-testid="stSidebar"] .stRadio [role="radiogroup"] {
     display: flex !important;
     flex-direction: row !important;
+    flex-wrap: nowrap !important;
     gap: 0.2rem !important;
     background: var(--surface-2) !important;
     border: 1px solid var(--border) !important;
     border-radius: var(--radius-sm) !important;
     padding: 0.25rem !important;
-    width: 100%;
+    width: 100% !important;
+    box-sizing: border-box;
 }
-.theme-toggle-wrap + div [role="radiogroup"] > label {
+
+[data-testid="stSidebar"] [role="radiogroup"][aria-orientation="horizontal"] > label,
+[data-testid="stSidebar"] .stRadio [role="radiogroup"] > label {
     flex: 1 1 0 !important;
     margin: 0 !important;
-    padding: 0.4rem 0.5rem !important;
+    padding: 0.45rem 0.5rem !important;
     border-radius: 4px !important;
     cursor: pointer;
-    transition: all 0.16s ease;
-    text-align: center;
+    transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
     background: transparent !important;
     color: var(--text-muted) !important;
     font-family: 'Inter', sans-serif !important;
@@ -921,27 +937,46 @@ button[kind="secondary"]:hover {
     justify-content: center !important;
     border: none !important;
     box-shadow: none !important;
+    gap: 0 !important;
+    min-height: 30px;
 }
-/* Hide the actual radio dot */
-.theme-toggle-wrap + div [role="radiogroup"] > label > div:first-child,
-.theme-toggle-wrap + div [role="radiogroup"] [data-baseweb="radio"] > div:first-child {
+
+/* Hide the radio dot itself; we only want the label text */
+[data-testid="stSidebar"] [role="radiogroup"] > label > div:first-child,
+[data-testid="stSidebar"] [role="radiogroup"] [data-baseweb="radio"] > div:first-child,
+[data-testid="stSidebar"] [role="radiogroup"] [data-testid="stMarkdownContainer"] ~ div,
+[data-testid="stSidebar"] [role="radiogroup"] input[type="radio"] {
     display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
 }
-.theme-toggle-wrap + div [role="radiogroup"] > label > div:nth-child(2),
-.theme-toggle-wrap + div [role="radiogroup"] [data-testid="stMarkdownContainer"] {
+
+/* Make the text span fill the label */
+[data-testid="stSidebar"] [role="radiogroup"] > label [data-testid="stMarkdownContainer"],
+[data-testid="stSidebar"] [role="radiogroup"] > label > div {
     margin: 0 !important;
     color: inherit !important;
+    width: 100%;
+    text-align: center;
 }
-.theme-toggle-wrap + div [role="radiogroup"] [data-testid="stMarkdownContainer"] p {
+[data-testid="stSidebar"] [role="radiogroup"] > label p {
     color: inherit !important;
     margin: 0 !important;
     font-size: 0.78rem !important;
     font-weight: inherit !important;
     text-transform: none !important;
     letter-spacing: 0 !important;
+    text-align: center;
+    width: 100%;
 }
-.theme-toggle-wrap + div [role="radiogroup"] > label:hover { color: var(--text) !important; }
-.theme-toggle-wrap + div [role="radiogroup"] > label:has(input:checked) {
+
+[data-testid="stSidebar"] [role="radiogroup"] > label:hover {
+    color: var(--text) !important;
+    background: color-mix(in srgb, var(--surface) 60%, transparent) !important;
+}
+[data-testid="stSidebar"] [role="radiogroup"] > label:has(input:checked),
+[data-testid="stSidebar"] [role="radiogroup"] > label[data-checked="true"] {
     background: var(--surface) !important;
     color: var(--text) !important;
     box-shadow: var(--shadow-sm) !important;
@@ -1155,7 +1190,19 @@ button[kind="secondary"]:hover {
             )
 
             # Theme toggle — Auto follows OS, Light / Dark force a palette.
-            st.markdown('<div class="theme-toggle-wrap">', unsafe_allow_html=True)
+            st.markdown(
+                """
+<div class="appearance-label">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+    </svg>
+    <span>Appearance</span>
+</div>
+""",
+                unsafe_allow_html=True,
+            )
             options = ['Auto', 'Light', 'Dark']
             choice = st.radio(
                 "Appearance",
@@ -1165,7 +1212,6 @@ button[kind="secondary"]:hover {
                 label_visibility='collapsed',
                 key='theme_radio',
             )
-            st.markdown('</div>', unsafe_allow_html=True)
             if choice != st.session_state.theme:
                 st.session_state.theme = choice
                 st.rerun()
