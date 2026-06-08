@@ -311,43 +311,50 @@ class SteelRecommenderPro:
 
     def inject_css(self):
         # Minimalist B&W theme — Auto follows OS, Light/Dark force a fixed palette.
+        # Warm stone palette — softer than pure B&W, easier on the eye.
         LIGHT_VARS = """
-    --bg:        #ffffff;
-    --surface:   #fafafa;
-    --surface-2: #f4f4f5;
-    --border:    #e5e5e5;
-    --border-strong: #d4d4d4;
-    --text:      #0a0a0a;
-    --text-muted:#6b7280;
-    --text-soft: #9ca3af;
-    --accent:    #0a0a0a;
-    --accent-inv:#ffffff;
-    --success:   #059669;
-    --warning:   #d97706;
-    --danger:    #dc2626;
-    --info:      #2563eb;
-    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
-    --shadow:    0 4px 12px rgba(0,0,0,0.06);
-    --shadow-lg: 0 12px 32px rgba(0,0,0,0.08);
+    --bg:        #fafaf9;
+    --surface:   #ffffff;
+    --surface-2: #f5f5f4;
+    --surface-3: #ececeb;
+    --border:    #e7e5e4;
+    --border-strong: #d6d3d1;
+    --text:      #1c1917;
+    --text-muted:#57534e;
+    --text-soft: #a8a29e;
+    --accent:    #1c1917;
+    --accent-hover:#292524;
+    --accent-inv:#fafaf9;
+    --success:   #047857;
+    --warning:   #b45309;
+    --danger:    #b91c1c;
+    --info:      #1d4ed8;
+    --shadow-sm: 0 1px 2px rgba(28,25,23,0.05);
+    --shadow:    0 4px 14px rgba(28,25,23,0.07);
+    --shadow-lg: 0 12px 32px rgba(28,25,23,0.10);
+    color-scheme: light;
 """
         DARK_VARS = """
-    --bg:        #0a0a0a;
-    --surface:   #111111;
-    --surface-2: #161616;
-    --border:    #262626;
-    --border-strong: #3a3a3a;
-    --text:      #fafafa;
-    --text-muted:#a1a1aa;
-    --text-soft: #71717a;
-    --accent:    #fafafa;
-    --accent-inv:#0a0a0a;
+    --bg:        #0c0c0d;
+    --surface:   #161618;
+    --surface-2: #1f1f22;
+    --surface-3: #2a2a2e;
+    --border:    #2e2e33;
+    --border-strong: #404045;
+    --text:      #fafaf9;
+    --text-muted:#a8a29e;
+    --text-soft: #78716c;
+    --accent:    #fafaf9;
+    --accent-hover:#e7e5e4;
+    --accent-inv:#0c0c0d;
     --success:   #34d399;
     --warning:   #fbbf24;
     --danger:    #f87171;
     --info:      #60a5fa;
     --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
-    --shadow:    0 4px 12px rgba(0,0,0,0.5);
+    --shadow:    0 4px 14px rgba(0,0,0,0.5);
     --shadow-lg: 0 12px 32px rgba(0,0,0,0.6);
+    color-scheme: dark;
 """
         SHARED = "--radius: 10px; --radius-sm: 6px;"
 
@@ -370,15 +377,17 @@ class SteelRecommenderPro:
 """ + theme_block + """
 
 /* ───── Global base ───── */
-html, body, [class*="css"], .stApp {
+html, body, [class*="css"], .stApp, .main, [data-testid="stAppViewContainer"] {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     background-color: var(--bg) !important;
     color: var(--text) !important;
-    transition: background-color 0.3s ease, color 0.3s ease;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
-.stApp { background-color: var(--bg) !important; }
+.stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+    background-color: var(--bg) !important;
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
 .main .block-container { padding-top: 2.5rem; padding-bottom: 3rem; max-width: 1280px; }
 
 h1, h2, h3, h4, h5, h6 {
@@ -387,23 +396,50 @@ h1, h2, h3, h4, h5, h6 {
     letter-spacing: -0.02em;
     font-weight: 700;
 }
-p, span, label, div { color: var(--text); }
+p, span, label, div, li { color: var(--text); }
+a { color: var(--info) !important; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { background: var(--surface-2) !important; color: var(--text) !important;
+       padding: 0.1rem 0.35rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; }
 
-/* ───── Sidebar ───── */
-[data-testid="stSidebar"] {
+/* ───── Sidebar — every internal node ───── */
+[data-testid="stSidebar"],
+section[data-testid="stSidebar"],
+[data-testid="stSidebar"] > div,
+[data-testid="stSidebar"] > div > div,
+[data-testid="stSidebarContent"] {
     background-color: var(--surface) !important;
+}
+[data-testid="stSidebar"] {
     border-right: 1px solid var(--border) !important;
 }
-[data-testid="stSidebar"] > div:first-child { padding-top: 1.5rem; }
+[data-testid="stSidebar"] > div:first-child { padding: 1.5rem 1.1rem 2rem 1.1rem; }
 [data-testid="stSidebar"] hr {
-    border-color: var(--border) !important;
+    border: none !important;
+    border-top: 1px solid var(--border) !important;
     margin: 1.25rem 0 !important;
 }
+[data-testid="stSidebar"] .stMarkdown,
 [data-testid="stSidebar"] .stMarkdown p,
-[data-testid="stSidebar"] label { color: var(--text) !important; }
+[data-testid="stSidebar"] .stMarkdown span,
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] {
+    color: var(--text) !important;
+}
+[data-testid="stSidebarNav"] { background-color: var(--surface) !important; }
+/* Sidebar collapse arrow */
+[data-testid="stSidebarCollapseButton"] button,
+[data-testid="collapsedControl"] {
+    color: var(--text) !important;
+    background: var(--surface) !important;
+}
 
 /* ───── Inputs ───── */
-.stNumberInput input, .stTextInput input, .stSelectbox > div > div {
+.stNumberInput input,
+.stTextInput input,
+.stTextArea textarea,
+[data-baseweb="input"] input,
+[data-baseweb="textarea"] textarea {
     background-color: var(--bg) !important;
     color: var(--text) !important;
     border: 1px solid var(--border) !important;
@@ -411,54 +447,179 @@ p, span, label, div { color: var(--text); }
     font-family: 'JetBrains Mono', monospace !important;
     font-size: 0.875rem !important;
     transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    caret-color: var(--accent) !important;
 }
-.stNumberInput input:focus, .stTextInput input:focus {
+.stNumberInput input:focus,
+.stTextInput input:focus,
+.stTextArea textarea:focus,
+[data-baseweb="input"] input:focus {
     border-color: var(--accent) !important;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent) !important;
     outline: none !important;
 }
+.stNumberInput [data-baseweb="input"] { background-color: var(--bg) !important; }
 .stNumberInput button {
     background-color: var(--surface-2) !important;
     border: 1px solid var(--border) !important;
     color: var(--text) !important;
+    transition: background 0.15s ease;
 }
-label, .stNumberInput label, .stSelectbox label, .stSlider label {
-    font-size: 0.78rem !important;
+.stNumberInput button:hover {
+    background-color: var(--surface-3) !important;
+    border-color: var(--border-strong) !important;
+}
+
+label, .stNumberInput label, .stSelectbox label, .stSlider label,
+[data-testid="stWidgetLabel"], [data-testid="stWidgetLabel"] p {
+    font-size: 0.74rem !important;
     font-weight: 500 !important;
     color: var(--text-muted) !important;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.3rem !important;
+}
+
+/* ───── Selectbox (trigger + dropdown popover) ───── */
+.stSelectbox [data-baseweb="select"] > div {
+    background-color: var(--bg) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-sm) !important;
+    color: var(--text) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.875rem !important;
+    min-height: 40px;
+}
+.stSelectbox [data-baseweb="select"] > div:hover { border-color: var(--border-strong) !important; }
+.stSelectbox [data-baseweb="select"] svg { color: var(--text-muted) !important; }
+[data-baseweb="select"] [role="combobox"] { color: var(--text) !important; }
+
+/* Popover/dropdown menu — rendered at body root, can't be scoped to sidebar */
+[data-baseweb="popover"] [role="listbox"],
+[data-baseweb="menu"] {
+    background-color: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-sm) !important;
+    box-shadow: var(--shadow-lg) !important;
+    padding: 0.3rem !important;
+}
+[data-baseweb="menu"] li,
+[role="listbox"] [role="option"] {
+    background-color: transparent !important;
+    color: var(--text) !important;
+    border-radius: 4px !important;
+    font-size: 0.875rem !important;
+    padding: 0.45rem 0.65rem !important;
+    transition: background 0.12s ease;
+}
+[role="listbox"] [role="option"]:hover,
+[data-baseweb="menu"] li:hover,
+[role="option"][aria-selected="true"] {
+    background-color: var(--surface-2) !important;
+    color: var(--text) !important;
 }
 
 /* ───── Sliders ───── */
 .stSlider [data-baseweb="slider"] > div > div { background: var(--accent) !important; }
+.stSlider [data-baseweb="slider"] > div { background: var(--surface-3) !important; }
 .stSlider [role="slider"] {
     background-color: var(--accent) !important;
     border: 2px solid var(--bg) !important;
     box-shadow: var(--shadow-sm) !important;
+    height: 16px !important; width: 16px !important;
+}
+.stSlider [data-testid="stTickBarMin"],
+.stSlider [data-testid="stTickBarMax"] {
+    color: var(--text-soft) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.7rem !important;
 }
 
-/* ───── Buttons ───── */
-div.stButton > button, div.stDownloadButton > button {
+/* ───── Buttons — primary (filled) ───── */
+div.stButton > button,
+div.stDownloadButton > button,
+div.stFormSubmitButton > button {
     background-color: var(--accent) !important;
     color: var(--accent-inv) !important;
     border: 1px solid var(--accent) !important;
     font-family: 'Inter', sans-serif !important;
     font-weight: 600 !important;
     font-size: 0.875rem !important;
-    letter-spacing: 0.01em !important;
+    letter-spacing: 0.005em !important;
     border-radius: var(--radius-sm) !important;
     padding: 0.65rem 1.5rem !important;
-    transition: all 0.18s ease !important;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease !important;
     box-shadow: var(--shadow-sm) !important;
     width: 100%;
+    cursor: pointer;
 }
-div.stButton > button:hover, div.stDownloadButton > button:hover {
+div.stButton > button:hover,
+div.stDownloadButton > button:hover,
+div.stFormSubmitButton > button:hover {
+    background-color: var(--accent-hover) !important;
+    border-color: var(--accent-hover) !important;
     transform: translateY(-1px);
     box-shadow: var(--shadow) !important;
-    opacity: 0.92;
 }
-div.stButton > button:active { transform: translateY(0); }
+div.stButton > button:active { transform: translateY(0); box-shadow: var(--shadow-sm) !important; }
+div.stButton > button:focus, div.stButton > button:focus-visible {
+    outline: none !important;
+    box-shadow: var(--shadow-sm), 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent) !important;
+}
+
+/* Secondary button variant (Streamlit type="secondary") */
+button[kind="secondary"] {
+    background-color: var(--surface) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border-strong) !important;
+}
+button[kind="secondary"]:hover {
+    background-color: var(--surface-2) !important;
+    border-color: var(--text-muted) !important;
+}
+
+/* File uploader — full styling */
+[data-testid="stFileUploader"] {
+    background: transparent !important;
+}
+[data-testid="stFileUploader"] section,
+[data-testid="stFileUploaderDropzone"] {
+    background: var(--surface-2) !important;
+    border: 1px dashed var(--border-strong) !important;
+    border-radius: var(--radius) !important;
+    padding: 1rem !important;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+[data-testid="stFileUploader"] section:hover,
+[data-testid="stFileUploaderDropzone"]:hover {
+    border-color: var(--accent) !important;
+    background: var(--surface-3) !important;
+}
+[data-testid="stFileUploader"] small,
+[data-testid="stFileUploaderDropzoneInstructions"],
+[data-testid="stFileUploaderDropzoneInstructions"] span,
+[data-testid="stFileUploaderDropzoneInstructions"] div {
+    color: var(--text-muted) !important;
+    font-size: 0.78rem !important;
+}
+/* Inner "Browse files" button */
+[data-testid="stFileUploader"] button,
+[data-testid="stBaseButton-secondary"] {
+    background-color: var(--bg) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border-strong) !important;
+    border-radius: var(--radius-sm) !important;
+    font-weight: 500 !important;
+    padding: 0.4rem 0.85rem !important;
+    width: auto !important;
+    box-shadow: none !important;
+    transition: all 0.15s ease;
+}
+[data-testid="stFileUploader"] button:hover,
+[data-testid="stBaseButton-secondary"]:hover {
+    background-color: var(--surface-2) !important;
+    border-color: var(--text-muted) !important;
+    transform: none !important;
+}
 
 /* ───── Tabs ───── */
 .stTabs [data-baseweb="tab-list"] {
@@ -639,58 +800,114 @@ div.stButton > button:active { transform: translateY(0); }
 .ac3-chip strong { color: var(--text); font-weight: 600; }
 .ac3-chip .divider { color: var(--text-soft); }
 
-/* Dataframe styling */
+/* ───── Dataframe ───── */
 .stDataFrame, [data-testid="stDataFrame"] {
     border: 1px solid var(--border) !important;
     border-radius: var(--radius) !important;
     overflow: hidden;
-}
-
-/* Alerts */
-.stAlert {
-    border-radius: var(--radius) !important;
-    border: 1px solid var(--border) !important;
     background: var(--surface) !important;
 }
+[data-testid="stDataFrame"] [data-testid="stTable"] { background: var(--surface) !important; }
+/* glide-data-grid (Streamlit's internal table renderer) */
+.dvn-scroller, .glide-cell, [class*="dvn-"] {
+    background-color: var(--surface) !important;
+    color: var(--text) !important;
+}
 
-/* Plotly figure container */
+/* ───── Alerts (info/warning/error/success) ───── */
+.stAlert, [data-testid="stAlert"], [data-testid="stNotification"] {
+    border-radius: var(--radius) !important;
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    padding: 0.85rem 1rem !important;
+}
+.stAlert [data-testid="stMarkdownContainer"] p,
+[data-testid="stAlert"] p { color: var(--text) !important; font-size: 0.88rem; }
+/* Variant tints via attribute */
+[data-baseweb="notification"][kind="info"], .stAlert.st-warning { border-left: 3px solid var(--info) !important; }
+.stAlert:has([data-testid="stAlertContentWarning"]),
+.element-container .stAlert[data-baseweb*="warning"] { border-left: 3px solid var(--warning) !important; }
+.stAlert:has([data-testid="stAlertContentError"]) { border-left: 3px solid var(--danger) !important; }
+.stAlert:has([data-testid="stAlertContentSuccess"]) { border-left: 3px solid var(--success) !important; }
+.stAlert:has([data-testid="stAlertContentInfo"]) { border-left: 3px solid var(--info) !important; }
+/* SVG icons inside alerts */
+.stAlert svg { color: var(--text-muted) !important; }
+
+/* ───── Expander ───── */
+[data-testid="stExpander"] {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    overflow: hidden;
+}
+[data-testid="stExpander"] summary {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    padding: 0.75rem 1rem !important;
+    font-weight: 500 !important;
+}
+[data-testid="stExpander"] summary:hover { background: var(--surface-2) !important; }
+
+/* ───── Radio (non-toggle) & Checkbox ───── */
+.stRadio [role="radiogroup"] label,
+.stCheckbox label {
+    color: var(--text) !important;
+}
+.stRadio [role="radio"][aria-checked="true"],
+.stCheckbox [data-baseweb="checkbox"] [data-checked="true"] {
+    background-color: var(--accent) !important;
+    border-color: var(--accent) !important;
+}
+.stCheckbox [data-baseweb="checkbox"] > div:first-child {
+    border-color: var(--border-strong) !important;
+}
+
+/* ───── Spinner ───── */
+.stSpinner > div { border-color: var(--accent) transparent transparent transparent !important; }
+.stSpinner + div { color: var(--text-muted) !important; font-size: 0.85rem; }
+
+/* ───── Tooltip ───── */
+[data-baseweb="tooltip"] {
+    background: var(--text) !important;
+    color: var(--bg) !important;
+    border-radius: var(--radius-sm) !important;
+    font-size: 0.78rem !important;
+    padding: 0.4rem 0.65rem !important;
+}
+
+/* ───── Plotly figure container ───── */
 .js-plotly-plot, .plot-container {
     background: var(--surface) !important;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 0.5rem;
+    padding: 0.75rem 0.5rem 0.25rem;
 }
 
-/* Hide Streamlit chrome */
-#MainMenu, footer, header[data-testid="stHeader"] { visibility: hidden; }
-
-/* File uploader */
-[data-testid="stFileUploader"] section {
-    background: var(--surface) !important;
-    border: 1px dashed var(--border-strong) !important;
-    border-radius: var(--radius) !important;
-}
+/* ───── Hide Streamlit chrome ───── */
+#MainMenu, footer, header[data-testid="stHeader"] { visibility: hidden; height: 0 !important; }
+[data-testid="stToolbar"] { display: none !important; }
+[data-testid="stStatusWidget"] { display: none !important; }
 
 /* ───── Theme toggle (segmented pill) ───── */
-.theme-toggle-wrap {
-    margin: 0.75rem 0 0.25rem 0;
-}
-.theme-toggle-wrap + div [role="radiogroup"] {
+.theme-toggle-wrap { margin: 0.85rem 0 0.5rem 0; }
+.theme-toggle-wrap + div [role="radiogroup"],
+[data-testid="stSidebar"] [data-testid="stRadio"]:has(+ * .theme-toggle-end) [role="radiogroup"] {
     display: flex !important;
+    flex-direction: row !important;
     gap: 0.2rem !important;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+    background: var(--surface-2) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-sm) !important;
     padding: 0.25rem !important;
     width: 100%;
 }
 .theme-toggle-wrap + div [role="radiogroup"] > label {
-    flex: 1 1 0;
+    flex: 1 1 0 !important;
     margin: 0 !important;
     padding: 0.4rem 0.5rem !important;
     border-radius: 4px !important;
     cursor: pointer;
-    transition: all 0.18s ease;
+    transition: all 0.16s ease;
     text-align: center;
     background: transparent !important;
     color: var(--text-muted) !important;
@@ -699,16 +916,35 @@ div.stButton > button:active { transform: translateY(0); }
     font-weight: 500 !important;
     text-transform: none !important;
     letter-spacing: 0 !important;
-    display: flex; align-items: center; justify-content: center;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    box-shadow: none !important;
 }
-.theme-toggle-wrap + div [role="radiogroup"] > label > div:first-child { display: none !important; }
-.theme-toggle-wrap + div [role="radiogroup"] > label:hover {
-    color: var(--text) !important;
+/* Hide the actual radio dot */
+.theme-toggle-wrap + div [role="radiogroup"] > label > div:first-child,
+.theme-toggle-wrap + div [role="radiogroup"] [data-baseweb="radio"] > div:first-child {
+    display: none !important;
 }
+.theme-toggle-wrap + div [role="radiogroup"] > label > div:nth-child(2),
+.theme-toggle-wrap + div [role="radiogroup"] [data-testid="stMarkdownContainer"] {
+    margin: 0 !important;
+    color: inherit !important;
+}
+.theme-toggle-wrap + div [role="radiogroup"] [data-testid="stMarkdownContainer"] p {
+    color: inherit !important;
+    margin: 0 !important;
+    font-size: 0.78rem !important;
+    font-weight: inherit !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+}
+.theme-toggle-wrap + div [role="radiogroup"] > label:hover { color: var(--text) !important; }
 .theme-toggle-wrap + div [role="radiogroup"] > label:has(input:checked) {
-    background: var(--bg) !important;
+    background: var(--surface) !important;
     color: var(--text) !important;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-sm) !important;
     font-weight: 600 !important;
 }
 
