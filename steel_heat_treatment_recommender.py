@@ -311,66 +311,80 @@ class SteelRecommenderPro:
 
     def inject_css(self):
         # Minimalist B&W theme — Auto follows OS, Light/Dark force a fixed palette.
-        # Warm stone palette — softer than pure B&W, easier on the eye.
+        # Indigo brand accent on neutral zinc foundation.
         LIGHT_VARS = """
-    --bg:        #fafaf9;
+    --bg:        #fafafa;
     --surface:   #ffffff;
-    --surface-2: #f5f5f4;
-    --surface-3: #ececeb;
-    --border:    #e7e5e4;
-    --border-strong: #d6d3d1;
-    --text:      #1c1917;
+    --surface-2: #f4f4f5;
+    --surface-3: #e4e4e7;
+    --border:    #e4e4e7;
+    --border-strong: #d4d4d8;
+    --text:      #18181b;
     --text-muted:#52525b;
-    --text-soft: #78716c;
-    --accent:    #1c1917;
-    --accent-hover:#292524;
-    --accent-inv:#fafaf9;
-    --success:   #047857;
-    --warning:   #b45309;
-    --danger:    #b91c1c;
-    --info:      #1d4ed8;
-    --shadow-sm: 0 1px 2px rgba(28,25,23,0.05);
-    --shadow:    0 4px 14px rgba(28,25,23,0.07);
-    --shadow-lg: 0 12px 32px rgba(28,25,23,0.10);
+    --text-soft: #71717a;
+    --accent:    #4f46e5;
+    --accent-hover:#4338ca;
+    --accent-soft:#eef2ff;
+    --accent-text:#4338ca;
+    --accent-inv:#ffffff;
+    --success:   #059669;
+    --success-soft:#d1fae5;
+    --warning:   #d97706;
+    --warning-soft:#fef3c7;
+    --danger:    #dc2626;
+    --danger-soft:#fee2e2;
+    --info:      #2563eb;
+    --info-soft: #dbeafe;
+    --shadow-sm: 0 1px 2px rgba(24,24,27,0.05);
+    --shadow:    0 4px 14px rgba(24,24,27,0.08);
+    --shadow-lg: 0 14px 36px rgba(24,24,27,0.12);
+    --shadow-accent: 0 6px 20px rgba(79,70,229,0.18);
     color-scheme: light;
 """
         DARK_VARS = """
-    --bg:        #0c0c0d;
-    --surface:   #161618;
-    --surface-2: #1f1f22;
-    --surface-3: #2a2a2e;
-    --border:    #2e2e33;
-    --border-strong: #404045;
-    --text:      #fafaf9;
-    --text-muted:#d4d4d8;
-    --text-soft: #a1a1aa;
-    --accent:    #fafaf9;
-    --accent-hover:#e7e5e4;
-    --accent-inv:#0c0c0d;
+    --bg:        #09090b;
+    --surface:   #18181b;
+    --surface-2: #27272a;
+    --surface-3: #3f3f46;
+    --border:    #27272a;
+    --border-strong: #3f3f46;
+    --text:      #fafafa;
+    --text-muted:#a1a1aa;
+    --text-soft: #71717a;
+    --accent:    #6366f1;
+    --accent-hover:#818cf8;
+    --accent-soft:rgba(99,102,241,0.16);
+    --accent-text:#a5b4fc;
+    --accent-inv:#ffffff;
     --success:   #34d399;
+    --success-soft:rgba(52,211,153,0.15);
     --warning:   #fbbf24;
+    --warning-soft:rgba(251,191,36,0.15);
     --danger:    #f87171;
+    --danger-soft:rgba(248,113,113,0.15);
     --info:      #60a5fa;
+    --info-soft: rgba(96,165,250,0.15);
     --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
-    --shadow:    0 4px 14px rgba(0,0,0,0.5);
-    --shadow-lg: 0 12px 32px rgba(0,0,0,0.6);
+    --shadow:    0 4px 14px rgba(0,0,0,0.55);
+    --shadow-lg: 0 14px 36px rgba(0,0,0,0.7);
+    --shadow-accent: 0 6px 20px rgba(99,102,241,0.35);
     color-scheme: dark;
 """
-        # Also sync Streamlit's own theme variables so its internal components match.
+        # Sync Streamlit's own theme variables to match.
         LIGHT_ST = """
-    --primary-color: #1c1917;
-    --background-color: #fafaf9;
-    --secondary-background-color: #f5f5f4;
-    --text-color: #1c1917;
-    --default-text-color: #1c1917;
+    --primary-color: #4f46e5;
+    --background-color: #fafafa;
+    --secondary-background-color: #f4f4f5;
+    --text-color: #18181b;
+    --default-text-color: #18181b;
     --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 """
         DARK_ST = """
-    --primary-color: #fafaf9;
-    --background-color: #0c0c0d;
-    --secondary-background-color: #1f1f22;
-    --text-color: #fafaf9;
-    --default-text-color: #fafaf9;
+    --primary-color: #6366f1;
+    --background-color: #09090b;
+    --secondary-background-color: #27272a;
+    --text-color: #fafafa;
+    --default-text-color: #fafafa;
     --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 """
         SHARED = "--radius: 10px; --radius-sm: 6px;"
@@ -629,36 +643,36 @@ label, .stNumberInput label, .stSelectbox label, .stSlider label,
     font-size: 0.7rem !important;
 }
 
-/* ───── Buttons — primary (filled) ───── */
+/* ───── Buttons — primary (filled, gradient indigo) ───── */
 div.stButton > button,
 div.stDownloadButton > button,
 div.stFormSubmitButton > button {
-    background-color: var(--accent) !important;
-    color: var(--accent-inv) !important;
-    border: 1px solid var(--accent) !important;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
     font-family: 'Inter', sans-serif !important;
     font-weight: 600 !important;
     font-size: 0.875rem !important;
     letter-spacing: 0.005em !important;
     border-radius: var(--radius-sm) !important;
-    padding: 0.65rem 1.5rem !important;
-    transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease !important;
-    box-shadow: var(--shadow-sm) !important;
+    padding: 0.7rem 1.5rem !important;
+    transition: transform 0.16s ease, box-shadow 0.18s ease, filter 0.16s ease !important;
+    box-shadow: var(--shadow-accent) !important;
     width: 100%;
     cursor: pointer;
+    position: relative;
 }
 div.stButton > button:hover,
 div.stDownloadButton > button:hover,
 div.stFormSubmitButton > button:hover {
-    background-color: var(--accent-hover) !important;
-    border-color: var(--accent-hover) !important;
     transform: translateY(-1px);
-    box-shadow: var(--shadow) !important;
+    box-shadow: var(--shadow-accent), var(--shadow) !important;
+    filter: brightness(1.05);
 }
-div.stButton > button:active { transform: translateY(0); box-shadow: var(--shadow-sm) !important; }
+div.stButton > button:active { transform: translateY(0); filter: brightness(0.96); }
 div.stButton > button:focus, div.stButton > button:focus-visible {
     outline: none !important;
-    box-shadow: var(--shadow-sm), 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent) !important;
+    box-shadow: var(--shadow-accent), 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent) !important;
 }
 
 /* Secondary button variant (Streamlit type="secondary") */
@@ -737,8 +751,9 @@ button[kind="secondary"]:hover {
 }
 .stTabs [aria-selected="true"] {
     background: var(--bg) !important;
-    color: var(--text) !important;
-    box-shadow: var(--shadow-sm) !important;
+    color: var(--accent-text) !important;
+    box-shadow: var(--shadow-sm), inset 0 -2px 0 var(--accent) !important;
+    font-weight: 600 !important;
 }
 .stTabs [data-baseweb="tab-highlight"] { display: none !important; }
 
@@ -750,7 +765,13 @@ button[kind="secondary"]:hover {
 }
 .mast-header .eyebrow {
     font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
-    color: var(--text-soft); letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--accent-text); letter-spacing: 0.15em; text-transform: uppercase;
+    font-weight: 600;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+}
+.mast-header .eyebrow::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .mast-header h1 {
     font-size: 2.4rem; margin: 0; font-weight: 700; letter-spacing: -0.035em;
@@ -794,12 +815,12 @@ button[kind="secondary"]:hover {
 }
 .pro-card::before {
     content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%;
-    background: var(--accent); opacity: 0.9;
+    background: linear-gradient(180deg, var(--accent), var(--accent-hover));
 }
 .pro-card:hover {
-    border-color: var(--border-strong);
+    border-color: var(--accent);
     transform: translateY(-2px);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow), 0 0 0 1px var(--accent-soft);
 }
 .pro-card-header {
     font-family: 'Space Grotesk', sans-serif;
@@ -808,8 +829,9 @@ button[kind="secondary"]:hover {
     margin-bottom: 0.35rem;
 }
 .pro-card-rank {
-    font-family: 'Space Grotesk', sans-serif; font-size: 1.65rem; font-weight: 700;
-    color: var(--text); line-height: 1; margin-bottom: 0.15rem;
+    font-family: 'Space Grotesk', sans-serif; font-size: 1.75rem; font-weight: 700;
+    color: var(--accent); line-height: 1; margin-bottom: 0.15rem;
+    letter-spacing: -0.02em;
 }
 .pro-card-score {
     font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
@@ -822,7 +844,7 @@ button[kind="secondary"]:hover {
 }
 .pro-label { color: var(--text-muted); font-weight: 500; }
 .pro-value { color: var(--text); font-weight: 600; }
-.pro-value.accent { color: var(--info); }
+.pro-value.accent { color: var(--accent-text); }
 
 /* Metric card (forward predictor) */
 .metric-card {
@@ -831,9 +853,20 @@ button[kind="secondary"]:hover {
     border-radius: var(--radius);
     padding: 1.1rem 1.25rem;
     margin-bottom: 0.85rem;
-    transition: border-color 0.2s ease;
+    transition: all 0.2s ease;
+    position: relative;
 }
-.metric-card:hover { border-color: var(--border-strong); }
+.metric-card::after {
+    content: ''; position: absolute; top: 0; right: 0;
+    width: 32px; height: 3px; border-radius: 0 var(--radius) 0 0;
+    background: linear-gradient(90deg, transparent, var(--accent));
+    opacity: 0.5; transition: opacity 0.2s ease;
+}
+.metric-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-soft);
+}
+.metric-card:hover::after { opacity: 1; }
 .metric-label {
     font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
     color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em;
@@ -899,15 +932,16 @@ button[kind="secondary"]:hover {
 
 /* Ac3 info chip */
 .ac3-chip {
-    display: inline-flex; gap: 0.5rem; align-items: baseline;
-    padding: 0.55rem 0.9rem; border-radius: var(--radius-sm);
-    background: var(--surface); border: 1px solid var(--border);
+    display: inline-flex; gap: 0.55rem; align-items: baseline;
+    padding: 0.6rem 0.95rem; border-radius: 999px;
+    background: var(--accent-soft);
+    border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
     margin: 1rem 0 1.5rem 0;
     font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
-    color: var(--text-muted);
+    color: var(--accent-text);
 }
-.ac3-chip strong { color: var(--text); font-weight: 600; }
-.ac3-chip .divider { color: var(--text-soft); }
+.ac3-chip strong { color: var(--accent-text); font-weight: 700; }
+.ac3-chip .divider { color: var(--accent-text); opacity: 0.45; }
 
 /* ───── Dataframe ───── */
 .stDataFrame, [data-testid="stDataFrame"] {
@@ -1003,15 +1037,16 @@ button[kind="secondary"]:hover {
     margin: 0 0 0.5rem 0;
 }
 .brand-mark {
-    width: 34px; height: 34px;
-    border-radius: 8px;
-    background: var(--accent);
-    color: var(--accent-inv);
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+    color: #ffffff;
     display: flex; align-items: center; justify-content: center;
     font-family: 'Inter', sans-serif !important;
-    font-weight: 700; font-size: 1rem;
+    font-weight: 700; font-size: 1.05rem;
     flex-shrink: 0;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-accent);
+    letter-spacing: -0.02em;
 }
 .brand-stack { display: flex; flex-direction: column; line-height: 1.15; }
 .brand-title {
@@ -1022,9 +1057,15 @@ button[kind="secondary"]:hover {
 }
 .brand-subtitle {
     font-family: 'Inter', sans-serif !important;
-    font-size: 0.72rem; font-weight: 500;
-    color: var(--text-muted) !important;
-    margin-top: 0.1rem;
+    font-size: 0.7rem; font-weight: 600;
+    color: var(--accent-text) !important;
+    margin-top: 0.15rem;
+    display: inline-flex; align-items: center;
+    padding: 0.12rem 0.5rem;
+    background: var(--accent-soft);
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+    width: fit-content;
 }
 
 /* ───── Appearance label (above theme toggle) ───── */
@@ -1267,22 +1308,24 @@ button[kind="secondary"]:hover {
         fig = go.Figure()
         props = PROPERTY_NAMES
 
-        # Detect Streamlit theme via env (Streamlit injects a CSS var; default to mid-tone grid).
-        grid_color = 'rgba(128,128,128,0.18)'
-        axis_color = 'rgba(128,128,128,0.45)'
-        text_color = 'rgba(128,128,128,0.95)'
+        # Theme-neutral chrome; works against both light & dark page backgrounds.
+        grid_color = 'rgba(113,113,122,0.18)'
+        axis_color = 'rgba(113,113,122,0.45)'
+        text_color = 'rgba(113,113,122,0.95)'
 
-        # Target — outlined bars, info-blue accent (single restrained color).
+        # Target — outlined bars in indigo (brand accent).
         t_vals = [targets[p] for p in props]
         fig.add_trace(go.Bar(
             x=[f"{p}<br><span style='font-size:10px;opacity:0.6'>{PROP_UNITS[p]}</span>" for p in props],
             y=t_vals, name='Target',
-            marker=dict(color='rgba(0,0,0,0)', line=dict(color='#2563eb', width=2)),
+            marker=dict(color='rgba(79,70,229,0.08)',
+                        line=dict(color='#4f46e5', width=2)),
             hovertemplate='<b>Target</b><br>%{x}: %{y}<extra></extra>'
         ))
 
-        # Monochrome ramp for predictions — distinct without rainbow noise.
-        ramp = ['#0a0a0a', '#404040', '#737373', '#a3a3a3', '#d4d4d4']
+        # Sequential ramp: indigo → violet → fuchsia → teal-mint for ranks 1..5.
+        # Single-hue dominant (indigo) with cool variation, keeping rank order legible.
+        ramp = ['#4f46e5', '#6366f1', '#8b5cf6', '#0ea5e9', '#14b8a6']
         for i, r in enumerate(results):
             pred = [r['pred'][p] for p in props]
             err  = [r['std'][p] for p in props]
