@@ -1,0 +1,255 @@
+{
+  "evidence": "surrogate_only_not_experimental_validation",
+  "candidate_budget": 300,
+  "cpu_threads": 2,
+  "torch_version": "2.12.1+cpu",
+  "model_hashes": {
+    "forward_sha256": "6b32d4a2b6e2fed2e128d2082e204839d2995f5f635629b39ae15c579b86e449",
+    "policy_sha256": "ff074ba6d75414d17cc78d8bec7934401b603813c342b345d6490741c9593fc4"
+  },
+  "results": [
+    {
+      "grade": "AISI 4340",
+      "seed": 7,
+      "method": "policy",
+      "seconds": 0.06390950000059092,
+      "valid_candidates": 300,
+      "best_score": -0.26190242171287537,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 4340",
+      "seed": 7,
+      "method": "random",
+      "seconds": 0.014252000000851694,
+      "valid_candidates": 300,
+      "best_score": -0.24395424127578735,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 4340",
+      "seed": 7,
+      "method": "hybrid",
+      "seconds": 0.03471720000015921,
+      "valid_candidates": 300,
+      "best_score": -0.2482951432466507,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 4340",
+      "seed": 42,
+      "method": "policy",
+      "seconds": 0.05137800000011339,
+      "valid_candidates": 300,
+      "best_score": -0.28083473443984985,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 4340",
+      "seed": 42,
+      "method": "random",
+      "seconds": 0.014663300000393065,
+      "valid_candidates": 300,
+      "best_score": -0.2526439130306244,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 4340",
+      "seed": 42,
+      "method": "hybrid",
+      "seconds": 0.03269899999941117,
+      "valid_candidates": 300,
+      "best_score": -0.2536632716655731,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 4340",
+      "seed": 123,
+      "method": "policy",
+      "seconds": 0.04953159999968193,
+      "valid_candidates": 300,
+      "best_score": -0.2646274268627167,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 4340",
+      "seed": 123,
+      "method": "random",
+      "seconds": 0.012333000000580796,
+      "valid_candidates": 300,
+      "best_score": -0.26441827416419983,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 4340",
+      "seed": 123,
+      "method": "hybrid",
+      "seconds": 0.03472970000075293,
+      "valid_candidates": 300,
+      "best_score": -0.24498522281646729,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 1045",
+      "seed": 7,
+      "method": "policy",
+      "seconds": 0.057057099998928607,
+      "valid_candidates": 300,
+      "best_score": -0.5560905337333679,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 1045",
+      "seed": 7,
+      "method": "random",
+      "seconds": 0.011518000001160544,
+      "valid_candidates": 300,
+      "best_score": -0.5497338771820068,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 1045",
+      "seed": 7,
+      "method": "hybrid",
+      "seconds": 0.03464050000002317,
+      "valid_candidates": 300,
+      "best_score": -0.5621746778488159,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 1045",
+      "seed": 42,
+      "method": "policy",
+      "seconds": 0.0464683000009245,
+      "valid_candidates": 300,
+      "best_score": -0.5731494426727295,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 1045",
+      "seed": 42,
+      "method": "random",
+      "seconds": 0.011881099999300204,
+      "valid_candidates": 300,
+      "best_score": -0.5553094744682312,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 1045",
+      "seed": 42,
+      "method": "hybrid",
+      "seconds": 0.03541579999910027,
+      "valid_candidates": 300,
+      "best_score": -0.5579978227615356,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 1045",
+      "seed": 123,
+      "method": "policy",
+      "seconds": 0.05104109999956563,
+      "valid_candidates": 300,
+      "best_score": -0.563147246837616,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 1045",
+      "seed": 123,
+      "method": "random",
+      "seconds": 0.018731199999820092,
+      "valid_candidates": 300,
+      "best_score": -0.544964611530304,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 1045",
+      "seed": 123,
+      "method": "hybrid",
+      "seconds": 0.038458800001535565,
+      "valid_candidates": 300,
+      "best_score": -0.5636274218559265,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 4140",
+      "seed": 7,
+      "method": "policy",
+      "seconds": 0.0511834999997518,
+      "valid_candidates": 300,
+      "best_score": -0.4097144603729248,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 4140",
+      "seed": 7,
+      "method": "random",
+      "seconds": 0.01353709999966668,
+      "valid_candidates": 300,
+      "best_score": -0.38714176416397095,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 4140",
+      "seed": 7,
+      "method": "hybrid",
+      "seconds": 0.039189899998746114,
+      "valid_candidates": 300,
+      "best_score": -0.3886476755142212,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 4140",
+      "seed": 42,
+      "method": "policy",
+      "seconds": 0.0645660999998654,
+      "valid_candidates": 300,
+      "best_score": -0.42134782671928406,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 4140",
+      "seed": 42,
+      "method": "random",
+      "seconds": 0.015145100000154343,
+      "valid_candidates": 300,
+      "best_score": -0.401733934879303,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 4140",
+      "seed": 42,
+      "method": "hybrid",
+      "seconds": 0.0424139999995532,
+      "valid_candidates": 300,
+      "best_score": -0.39565765857696533,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 4140",
+      "seed": 123,
+      "method": "policy",
+      "seconds": 0.055470200000854675,
+      "valid_candidates": 300,
+      "best_score": -0.41530653834342957,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 4140",
+      "seed": 123,
+      "method": "random",
+      "seconds": 0.014423099999476108,
+      "valid_candidates": 300,
+      "best_score": -0.4044951796531677,
+      "any_displayed_within_tolerance": false
+    },
+    {
+      "grade": "AISI 4140",
+      "seed": 123,
+      "method": "hybrid",
+      "seconds": 0.04051409999919997,
+      "valid_candidates": 300,
+      "best_score": -0.4201689064502716,
+      "any_displayed_within_tolerance": false
+    }
+  ]
+}

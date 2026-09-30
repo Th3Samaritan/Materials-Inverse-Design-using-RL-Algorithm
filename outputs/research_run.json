@@ -1,0 +1,178 @@
+{
+  "schema_version": "1.0",
+  "created_at": "2026-09-08T13:22:05.364769+00:00",
+  "material_family": "Low-alloy steel",
+  "evidence_status": "synthetic_research_only",
+  "composition_wt_pct": {
+    "C": 0.4,
+    "Si": 0.25,
+    "Mn": 0.75,
+    "P": 0.02,
+    "S": 0.02,
+    "Cr": 0.8,
+    "Ni": 1.8,
+    "Mo": 0.25,
+    "V": 0.001,
+    "Cu": 0.05,
+    "Al": 0.03,
+    "Ti": 0.001,
+    "Nb": 0.001,
+    "B": 0.0001,
+    "Fe": 95.6269
+  },
+  "targets": {
+    "UTS": 1300,
+    "YS": 1100,
+    "elongation": 10,
+    "reduction_of_area": 15,
+    "HRC": 40,
+    "impact_energy_J": 80
+  },
+  "constraints": {
+    "max_temperature_c": 1100.0,
+    "max_hold_hours": 12.0,
+    "allowed_quenches": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "section_diameter_mm": 25.0
+  },
+  "seed": 42,
+  "method": "hybrid",
+  "candidate_budget": 100,
+  "valid_candidates": 100,
+  "requested_top_k": 4,
+  "tolerance_fraction": 0.15,
+  "time_weight": 0.0,
+  "model_hashes": {
+    "forward_sha256": "6b32d4a2b6e2fed2e128d2082e204839d2995f5f635629b39ae15c579b86e449",
+    "policy_sha256": "ff074ba6d75414d17cc78d8bec7934401b603813c342b345d6490741c9593fc4"
+  },
+  "warnings": [
+    "Research only: synthetic legacy model, no demonstrated industrial qualification.",
+    "Ensemble spread is not a calibrated prediction interval.",
+    "Hold time excludes heating ramps, transfer, quenching and cooling; it is not total cycle time.",
+    "Training-source phase-fraction defect identified; checkpoint lineage is not fully verified.",
+    "No displayed candidate meets all target tolerances; this does not prove physical impossibility."
+  ],
+  "results": [
+    {
+      "rank": 1,
+      "score": -0.24865186214447021,
+      "T_aus": 788.1138305664062,
+      "t_aus": 0.7365929484367371,
+      "quench": "Oil",
+      "T_temper": 571.8006591796875,
+      "t_temper": 4.208992958068848,
+      "pred": {
+        "UTS": 1316.038818359375,
+        "YS": 984.1189575195312,
+        "elongation": 11.542451858520508,
+        "reduction_of_area": 15.633466720581055,
+        "HRC": 40.429222106933594,
+        "impact_energy_J": 54.5259895324707
+      },
+      "std": {
+        "UTS": 14.371553421020508,
+        "YS": 8.934239387512207,
+        "elongation": 0.4613218307495117,
+        "reduction_of_area": 0.5984083414077759,
+        "HRC": 0.4928967356681824,
+        "impact_energy_J": 1.7240451574325562
+      },
+      "within_tolerance": false,
+      "pareto": true,
+      "hold_hours": 4.94558572769165,
+      "generator": "random"
+    },
+    {
+      "rank": 2,
+      "score": -0.26539626717567444,
+      "T_aus": 820.5051879882812,
+      "t_aus": 3.8883299827575684,
+      "quench": "Water",
+      "T_temper": 593.43994140625,
+      "t_temper": 1.084948182106018,
+      "pred": {
+        "UTS": 1307.340087890625,
+        "YS": 976.9232177734375,
+        "elongation": 11.968137741088867,
+        "reduction_of_area": 16.702138900756836,
+        "HRC": 40.112579345703125,
+        "impact_energy_J": 55.102943420410156
+      },
+      "std": {
+        "UTS": 11.988629341125488,
+        "YS": 10.957483291625977,
+        "elongation": 0.6163817048072815,
+        "reduction_of_area": 0.8456802368164062,
+        "HRC": 0.46721869707107544,
+        "impact_energy_J": 1.687563180923462
+      },
+      "within_tolerance": false,
+      "pareto": false,
+      "hold_hours": 4.973278045654297,
+      "generator": "random"
+    },
+    {
+      "rank": 3,
+      "score": -0.26739734411239624,
+      "T_aus": 784.4713134765625,
+      "t_aus": 3.1456151008605957,
+      "quench": "Water",
+      "T_temper": 567.4947509765625,
+      "t_temper": 7.879004955291748,
+      "pred": {
+        "UTS": 1336.756103515625,
+        "YS": 999.3464965820312,
+        "elongation": 10.794766426086426,
+        "reduction_of_area": 14.871856689453125,
+        "HRC": 41.27431869506836,
+        "impact_energy_J": 51.3968505859375
+      },
+      "std": {
+        "UTS": 7.372814178466797,
+        "YS": 6.7045745849609375,
+        "elongation": 0.240120530128479,
+        "reduction_of_area": 0.6318016052246094,
+        "HRC": 0.3464961051940918,
+        "impact_energy_J": 2.4665920734405518
+      },
+      "within_tolerance": false,
+      "pareto": true,
+      "hold_hours": 11.024620056152344,
+      "generator": "random"
+    },
+    {
+      "rank": 4,
+      "score": -0.2704554796218872,
+      "T_aus": 803.5130004882812,
+      "t_aus": 2.621044635772705,
+      "quench": "Polymer",
+      "T_temper": 676.2407836914062,
+      "t_temper": 4.805722713470459,
+      "pred": {
+        "UTS": 1320.503173828125,
+        "YS": 987.0607299804688,
+        "elongation": 11.21552562713623,
+        "reduction_of_area": 15.774953842163086,
+        "HRC": 40.6448974609375,
+        "impact_energy_J": 52.34400177001953
+      },
+      "std": {
+        "UTS": 5.472625255584717,
+        "YS": 4.164407730102539,
+        "elongation": 0.22115668654441833,
+        "reduction_of_area": 0.34390076994895935,
+        "HRC": 0.22491039335727692,
+        "impact_energy_J": 1.0136921405792236
+      },
+      "within_tolerance": false,
+      "pareto": true,
+      "hold_hours": 7.426767349243164,
+      "generator": "random"
+    }
+  ]
+}
