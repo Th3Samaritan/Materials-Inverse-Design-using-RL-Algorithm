@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: mast-materials-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: ALLOW_ANONYMOUS
+        value: "false"
+      - key: TORCH_NUM_THREADS
+        value: "2"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false

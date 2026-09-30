@@ -1,55 +1,74 @@
-# MAST Inverse Design — Streamlit App
+# MAST Materials Inverse Design
 
-Steel heat treatment inverse design powered by the MAST policy gradient model.
+A research platform for specifying material-property targets and screening processing candidates. The current predictor covers a **synthetic low-alloy steel quench-and-temper domain**, not an industrially qualified process-design system.
 
-## Setup
+The September 2026 audit found a phase-fraction defect in the legacy training sources. Existing checkpoints are retained for reproducible research, clearly labeled, and must not be used as evidence of manufacturing performance. More training on the same flawed generator will not resolve this.
 
-```bash
-pip install -r requirements.txt
-streamlit run app.py
+## Web platform
+
+The active application is now **React/Vite on Vercel**, **FastAPI/PyTorch on Render**, and **Supabase Auth + Postgres** for accounts and private run history. Streamlit is archived under `legacy/streamlit/` and is not a runtime dependency. The interface keeps a solid white background and evergreen accents.
+
+Deployment files are prepared; cloud resources have **not yet been deployed or connected**. See [Deployment](docs/DEPLOYMENT.md) for exact environment variables, setup order and verification.
+
+## Run locally
+
+Backend, from the repository root (Python 3.13):
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+$env:APP_ENV='development'
+$env:ALLOW_ANONYMOUS='true'
+$env:CORS_ORIGINS='http://127.0.0.1:5173,http://localhost:5173'
+.\.venv\Scripts\python.exe -m uvicorn api.main:create_app --factory --host 127.0.0.1 --port 8000
 ```
 
-## Usage
+Frontend, in a second terminal (Node 24):
 
-1. **Upload models** — drag `forward_model.pt` and `policy.pt` into the sidebar file uploaders
-2. **Set composition** — use the element sliders or pick a preset (4340, 1045, 4140, H13)
-3. **Set targets** — enter the mechanical properties you want to achieve
-4. **Recommend** — click "Get Heat Treatment Recommendations"
+```powershell
+cd web
+npm ci
+npm run dev
+```
 
-The app returns the top-N ranked heat treatment processes, each with:
-- Austenitizing temperature and time
-- Quench medium
-- Tempering temperature and time
-- Predicted properties with uncertainty (±1 std from ensemble)
-- Score (higher = better property match)
+Open `http://127.0.0.1:5173`. Local anonymous mode permits inference and JSON export; saving requires a configured Supabase account. `.env.example` files document configuration, but backend variables must be exported in the shell (the backend does not automatically load `.env`).
 
-## Two Modes
+The API loads `checkpoints/forward_model.pt` and `checkpoints/policy.pt`. Restricted loading rejects arbitrary Python checkpoint objects. The web app does not accept checkpoint uploads; model changes go through a backend release.
 
-**Inverse Design (main):** Composition + Target Properties → Recommended Heat Treatment
-**Forward Prediction:** Composition + Heat Treatment → Predicted Properties
+Core commands and tests:
 
-## Model Files
+```powershell
+.\.venv\Scripts\python.exe -m mast --method hybrid --candidates 100 --output outputs/research_run.json
+.\.venv\Scripts\python.exe scripts/benchmark_search.py
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+cd web
+npm test
+```
 
-Download from your Kaggle run Output tab:
-- `checkpoints/forward_model.pt`
-- `checkpoints/policy.pt`
+With both local servers running, run `npm run test:e2e` from `web/` for real-browser checks. Install Chromium with `npx playwright install chromium`, or on Windows use the installed Edge browser by setting `$env:PLAYWRIGHT_CHANNEL='msedge'` first. Screenshots and test output are kept in the ignored `.cache/` directory.
 
-Or extract from `MAST_model_bundle.zip`.
+## Implemented
 
-## Physical Limits
+- Three illustrative low-alloy presets and custom composition with explicit training-domain checks. H13 is excluded instead of silently clipped.
+- Policy, random and hybrid candidate generation with reproducible seeds.
+- Equipment temperature, allowed quench media and combined hold-time constraints.
+- Finite/physical output screening, target-tolerance status, Pareto tradeoff flags and optional shorter-hold preference.
+- JSON export with inputs, settings, screening counts, warnings and checkpoint hashes.
+- Forward prediction with the same domain/equipment screening.
+- Material-family readiness catalog. Tool/stainless steels, composites, thermoplastics and elastomers have documented extension requirements; their predictors are not implemented.
+- Provenance-aware measurement records, group-separated splits and a measured-data baseline evaluation command.
+- A bounded martensite primitive for future physics work. It does not change existing checkpoint predictions.
 
-Some targets are physically unreachable for a given composition — for example,
-a 4340-like steel cannot achieve UTS < ~950 MPa with standard quench-and-temper
-even at maximum tempering. The app shows a warning when the top recommendation
-overshoots the target by >15%. In those cases, use a lower-hardenability steel.
+A score is a research ranking, not a success probability. Ensemble spread is not a calibrated prediction interval. Hold time omits ramps, transfers, quench and cooling, so it is not total cycle time or energy. A failed search does not prove physical impossibility.
 
-## Deployment
+## Documentation
 
-Deploy to Streamlit Community Cloud:
-1. Push this folder to a GitHub repo
-2. Go to share.streamlit.io
-3. Connect repo, set main file as `app.py`
-4. Upload model files at runtime via the sidebar uploaders
+- [Audit and model card](docs/AUDIT_AND_MODEL_CARD.md): architecture, data lineage, defects and limits.
+- [Research and industrial roadmap](docs/RESEARCH_AND_ROADMAP.md): family physics, DFT strategy, customer problems and commercialization gates.
+- [Data and validation](docs/DATA_AND_VALIDATION.md): measurement contract, evaluation and retraining process.
+- [Implementation and verification](docs/IMPLEMENTATION.md): changes, tests, benchmark and remaining work.
+- [Research sources](docs/SOURCES.md): papers, technical documentation and labeled vendor sources.
+- [Deployment](docs/DEPLOYMENT.md): Supabase, Render and Vercel configuration, access controls, verification and rollback.
+- [Web migration record](docs/WEB_MIGRATION.md): implementation details and tested versus unverified deployment behavior.
 
-For local deployment with pre-loaded models, replace the `st.file_uploader`
-calls with `torch.load('path/to/model.pt')` directly.
+The external `MAST Consolidate/MAST-RL` project was inspected read-only. Its notebooks, experiments and model files were not altered.

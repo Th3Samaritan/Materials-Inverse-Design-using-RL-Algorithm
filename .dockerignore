@@ -1,0 +1,10 @@
+**
+!Dockerfile
+!requirements-api.txt
+!mast/
+!mast/*.py
+!api/
+!api/*.py
+!checkpoints/
+!checkpoints/forward_model.pt
+!checkpoints/policy.pt

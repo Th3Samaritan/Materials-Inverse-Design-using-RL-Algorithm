@@ -1,0 +1,11 @@
+# Set the Vercel project's Root Directory to web.
+checkpoints/
+legacy/
+.venv/
+outputs/
+tests/
+api/
+mast/
+supabase/
+docs/
+.env*
